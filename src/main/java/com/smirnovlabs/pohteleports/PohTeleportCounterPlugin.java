@@ -163,6 +163,11 @@ public class PohTeleportCounterPlugin extends Plugin
 	public void onMenuOptionClicked(MenuOptionClicked e)
 	{
 		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
+		if (config.debugLogMenus() && !mi.optionLower().equals("walk here"))
+		{
+			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
+				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
+		}
 		router.onMenuInteraction(mi);
 	}
 
