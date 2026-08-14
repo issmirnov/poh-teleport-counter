@@ -1,8 +1,41 @@
 package com.smirnovlabs.pohteleports;
 
+import com.google.inject.Provides;
+import com.smirnovlabs.pohteleports.cost.SavingsValuator;
+import com.smirnovlabs.pohteleports.detect.DetectionRouter;
+import com.smirnovlabs.pohteleports.detect.GameStateView;
+import com.smirnovlabs.pohteleports.detect.JewelleryBoxRecognizer;
+import com.smirnovlabs.pohteleports.detect.MenuInteraction;
+import com.smirnovlabs.pohteleports.detect.MountedAmuletRecognizer;
+import com.smirnovlabs.pohteleports.detect.MountedGloryRecognizer;
+import com.smirnovlabs.pohteleports.detect.NexusRecognizer;
+import com.smirnovlabs.pohteleports.detect.PohGameIds;
+import com.smirnovlabs.pohteleports.detect.TeleportRecognizer;
+import com.smirnovlabs.pohteleports.model.Destination;
+import com.smirnovlabs.pohteleports.model.Transport;
+import com.smirnovlabs.pohteleports.store.TeleportSavingsStore;
+import com.smirnovlabs.pohteleports.ui.PanelModel;
+import com.smirnovlabs.pohteleports.ui.PohTeleportPanel;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.Client;
+import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
+import net.runelite.client.util.Text;
 
 @Slf4j
 @PluginDescriptor(
@@ -12,15 +45,162 @@ import net.runelite.client.plugins.PluginDescriptor;
 )
 public class PohTeleportCounterPlugin extends Plugin
 {
-	@Override
-	protected void startUp() throws Exception
+	@Inject
+	private Client client;
+	@Inject
+	private ClientToolbar clientToolbar;
+	@Inject
+	private ConfigManager configManager;
+	@Inject
+	private ItemManager itemManager;
+	@Inject
+	private PohTeleportConfig config;
+
+	private final TeleportSavingsStore store = new TeleportSavingsStore();
+	private SavingsValuator valuator;
+	private DetectionRouter router;
+	private PohTeleportPanel panel;
+	private NavigationButton navButton;
+
+	@Provides
+	PohTeleportConfig provideConfig(ConfigManager cm)
 	{
-		log.debug("PoH Teleport Counter started");
+		return cm.getConfig(PohTeleportConfig.class);
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	protected void startUp()
 	{
-		log.debug("PoH Teleport Counter stopped");
+		store.load(configManager);
+		valuator = new SavingsValuator(itemManager::getItemPrice);
+
+		GameStateView state = new GameStateView()
+		{
+			@Override
+			public int getVarbit(int id)
+			{
+				return id < 0 ? 0 : client.getVarbitValue(id);
+			}
+
+			@Override
+			public boolean isInPoh()
+			{
+				// Until POH regions are captured (live QA), leave the gate open so
+				// object-scoped transports can be verified; once populated it tightens.
+				if (PohGameIds.POH_REGIONS.length == 0)
+				{
+					return true;
+				}
+				int[] regions = client.getMapRegions();
+				if (regions == null)
+				{
+					return false;
+				}
+				for (int r : PohGameIds.POH_REGIONS)
+				{
+					for (int cur : regions)
+					{
+						if (cur == r)
+						{
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+
+			@Override
+			public int currentTick()
+			{
+				return client.getTickCount();
+			}
+		};
+
+		// Order matters: object-scoped and armed recognizers before name-only ones.
+		// Mounted glory must precede the jewellery box (they share names like "Edgeville").
+		List<TeleportRecognizer> recognizers = Arrays.asList(
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_XERICS_OBJECT, PohGameIds.MOUNTED_XERICS_DEFAULT_VARBIT,
+				Transport.MOUNTED_XERICS, byName(Transport.MOUNTED_XERICS), varbitDefault(Transport.MOUNTED_XERICS)),
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_DIGSITE_OBJECT, PohGameIds.MOUNTED_DIGSITE_DEFAULT_VARBIT,
+				Transport.MOUNTED_DIGSITE, byName(Transport.MOUNTED_DIGSITE), varbitDefault(Transport.MOUNTED_DIGSITE)),
+			new MountedGloryRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, byName(Transport.MOUNTED_GLORY)),
+			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, varbitDefault(Transport.NEXUS), byName(Transport.NEXUS)),
+			new JewelleryBoxRecognizer(byName(Transport.JEWELLERY_BOX)));
+
+		router = new DetectionRouter(recognizers, state, ev ->
+		{
+			store.record(ev);
+			store.persist(configManager);
+			refresh();
+		});
+
+		panel = new PohTeleportPanel(mode ->
+		{
+			configManager.setConfiguration(TeleportSavingsStore.GROUP, "sortMode", mode.name());
+			refresh();
+		});
+		navButton = NavigationButton.builder()
+			.tooltip("PoH Teleport Counter")
+			.icon(ImageUtil.loadImageResource(getClass(), "/poh_teleport_counter_icon.png"))
+			.priority(7)
+			.panel(panel)
+			.build();
+		clientToolbar.addNavigation(navButton);
+		refresh();
+	}
+
+	@Override
+	protected void shutDown()
+	{
+		store.persist(configManager);
+		if (navButton != null)
+		{
+			clientToolbar.removeNavigation(navButton);
+		}
+	}
+
+	@Subscribe
+	public void onMenuOptionClicked(MenuOptionClicked e)
+	{
+		MenuInteraction mi = new MenuInteraction(
+			Text.removeTags(e.getMenuOption()),
+			Text.removeTags(e.getMenuTarget()),
+			e.getId());
+		router.onMenuInteraction(mi);
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage e)
+	{
+		router.onChatMessage(e.getMessage());
+	}
+
+	private void refresh()
+	{
+		panel.rebuild(PanelModel.build(store.snapshot(), valuator, config.sortMode()));
+	}
+
+	/** Lowercased display-name -&gt; Destination for one transport (excludes the unknown bucket). */
+	private static Map<String, Destination> byName(Transport t)
+	{
+		Map<String, Destination> m = new HashMap<>();
+		for (Destination d : Destination.values())
+		{
+			if (d.getTransport() == t && !d.getId().endsWith(":unknown"))
+			{
+				m.put(d.getDisplayName().toLowerCase(Locale.ROOT), d);
+			}
+		}
+		return m;
+	}
+
+	/**
+	 * Varbit value -&gt; Destination for a transport's configured default. Empty until the
+	 * real varbit encodings are captured in live QA; empty is safe (falls back to the
+	 * transport's Unknown bucket).
+	 */
+	private static Map<Integer, Destination> varbitDefault(Transport t)
+	{
+		return Collections.emptyMap();
 	}
 }
