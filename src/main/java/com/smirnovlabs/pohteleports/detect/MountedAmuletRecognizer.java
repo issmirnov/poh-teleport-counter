@@ -1,0 +1,52 @@
+package com.smirnovlabs.pohteleports.detect;
+
+import com.smirnovlabs.pohteleports.model.Destination;
+import com.smirnovlabs.pohteleports.model.Transport;
+import java.util.Map;
+import java.util.Optional;
+
+/**
+ * Mounted Xeric's talisman / Digsite pendant: right-click options directly on
+ * the object. Scoped by object id. A named right-click resolves by name; a
+ * generic left-click default resolves from the configured-default varbit.
+ * One instance per transport (Xeric's, Digsite).
+ */
+public class MountedAmuletRecognizer implements TeleportRecognizer
+{
+	private final int objectId;
+	private final int defaultVarbit;
+	private final Transport transport;
+	private final Map<String, Destination> nameMap;
+	private final Map<Integer, Destination> varbitDefaultMap;
+
+	public MountedAmuletRecognizer(int objectId, int defaultVarbit, Transport transport,
+		Map<String, Destination> nameMap, Map<Integer, Destination> varbitDefaultMap)
+	{
+		this.objectId = objectId;
+		this.defaultVarbit = defaultVarbit;
+		this.transport = transport;
+		this.nameMap = nameMap;
+		this.varbitDefaultMap = varbitDefaultMap;
+	}
+
+	@Override
+	public Optional<Destination> onMenuInteraction(MenuInteraction e, GameStateView state)
+	{
+		if (e.getId() != objectId)
+		{
+			return Optional.empty();
+		}
+		String option = e.optionLower();
+		if (option.contains("configure") || option.contains("build") || option.contains("set ") || option.contains("add "))
+		{
+			return Optional.empty();
+		}
+		Destination byName = TeleportRecognizer.matchName(e, nameMap);
+		if (byName != null)
+		{
+			return Optional.of(byName);
+		}
+		Destination byVarbit = varbitDefaultMap.get(state.getVarbit(defaultVarbit));
+		return Optional.of(byVarbit != null ? byVarbit : Destination.unknownFor(transport));
+	}
+}
