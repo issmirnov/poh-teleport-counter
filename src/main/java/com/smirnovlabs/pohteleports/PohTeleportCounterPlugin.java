@@ -162,11 +162,13 @@ public class PohTeleportCounterPlugin extends Plugin
 	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked e)
 	{
-		MenuInteraction mi = new MenuInteraction(
-			Text.removeTags(e.getMenuOption()),
-			Text.removeTags(e.getMenuTarget()),
-			e.getId());
+		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
 		router.onMenuInteraction(mi);
+	}
+
+	private static String strip(String s)
+	{
+		return s == null ? "" : Text.removeTags(s);
 	}
 
 	@Subscribe
