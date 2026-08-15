@@ -41,6 +41,12 @@ public enum Destination
 	// --- Mounted glory (Quest Hall): ITEM_FRACTION ---
 	MGLORY_EDGEVILLE("mglory:edgeville", "Edgeville", MOUNTED_GLORY, null,
 		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
+	MGLORY_KARAMJA("mglory:karamja", "Karamja", MOUNTED_GLORY, null,
+		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
+	MGLORY_DRAYNOR("mglory:draynor", "Draynor Village", MOUNTED_GLORY, null,
+		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
+	MGLORY_AL_KHARID("mglory:al_kharid", "Al Kharid", MOUNTED_GLORY, null,
+		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
 
 	// --- Mounted Xeric's talisman: CONSUMABLE (lizardman fangs per use; qty TBD in live QA) ---
 	MXERIC_LOOKOUT("mxeric:lookout", "Look-out", MOUNTED_XERICS, null,

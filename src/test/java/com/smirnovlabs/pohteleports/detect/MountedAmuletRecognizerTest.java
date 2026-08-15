@@ -38,6 +38,15 @@ public class MountedAmuletRecognizerTest
 	}
 
 	@Test
+	public void nonTeleportOptionIgnored()
+	{
+		// Examine / Rub on the object must NOT count (was falling through to the Unknown bucket)
+		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE, Map.of(), Map.of());
+		assertEquals(Optional.empty(),
+			r.onMenuInteraction(new MenuInteraction("Examine", "Mounted digsite pendant", 500), new St()));
+	}
+
+	@Test
 	public void otherObjectIgnored()
 	{
 		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE, Map.of(), Map.of());

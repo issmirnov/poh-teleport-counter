@@ -6,10 +6,11 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Mounted Xeric's talisman / Digsite pendant: right-click options directly on
- * the object. Scoped by object id. A named right-click resolves by name; a
- * generic left-click default resolves from the configured-default varbit.
- * One instance per transport (Xeric's, Digsite).
+ * Mounted amulets that expose destinations as right-click options directly on
+ * the object: mounted glory, mounted Xeric's talisman, mounted Digsite pendant.
+ * Scoped by object id. A named option resolves by name; a generic "Teleport"
+ * default resolves from the configured-default varbit; other options (Examine,
+ * Rub, Configure, ...) are ignored. One instance per transport.
  */
 public class MountedAmuletRecognizer implements TeleportRecognizer
 {
@@ -36,17 +37,18 @@ public class MountedAmuletRecognizer implements TeleportRecognizer
 		{
 			return Optional.empty();
 		}
-		String option = e.optionLower();
-		if (option.contains("configure") || option.contains("build") || option.contains("set ") || option.contains("add "))
-		{
-			return Optional.empty();
-		}
 		Destination byName = TeleportRecognizer.matchName(e, nameMap);
 		if (byName != null)
 		{
 			return Optional.of(byName);
 		}
-		Destination byVarbit = varbitDefaultMap.get(state.getVarbit(defaultVarbit));
-		return Optional.of(byVarbit != null ? byVarbit : Destination.unknownFor(transport));
+		// Generic left-click default (e.g. "Teleport") -> configured-default varbit.
+		// Non-teleport options (Examine, Rub, Configure, Set-default, ...) are ignored.
+		if (e.optionLower().contains("teleport"))
+		{
+			Destination byVarbit = varbitDefaultMap.get(state.getVarbit(defaultVarbit));
+			return Optional.of(byVarbit != null ? byVarbit : Destination.unknownFor(transport));
+		}
+		return Optional.empty();
 	}
 }

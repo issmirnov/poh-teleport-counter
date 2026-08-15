@@ -7,7 +7,6 @@ import com.smirnovlabs.pohteleports.detect.GameStateView;
 import com.smirnovlabs.pohteleports.detect.JewelleryBoxRecognizer;
 import com.smirnovlabs.pohteleports.detect.MenuInteraction;
 import com.smirnovlabs.pohteleports.detect.MountedAmuletRecognizer;
-import com.smirnovlabs.pohteleports.detect.MountedGloryRecognizer;
 import com.smirnovlabs.pohteleports.detect.NexusRecognizer;
 import com.smirnovlabs.pohteleports.detect.PohGameIds;
 import com.smirnovlabs.pohteleports.detect.TeleportRecognizer;
@@ -27,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -47,6 +47,8 @@ public class PohTeleportCounterPlugin extends Plugin
 {
 	@Inject
 	private Client client;
+	@Inject
+	private ClientThread clientThread;
 	@Inject
 	private ClientToolbar clientToolbar;
 	@Inject
@@ -123,7 +125,8 @@ public class PohTeleportCounterPlugin extends Plugin
 				Transport.MOUNTED_XERICS, byName(Transport.MOUNTED_XERICS), varbitDefault(Transport.MOUNTED_XERICS)),
 			new MountedAmuletRecognizer(PohGameIds.MOUNTED_DIGSITE_OBJECT, PohGameIds.MOUNTED_DIGSITE_DEFAULT_VARBIT,
 				Transport.MOUNTED_DIGSITE, byName(Transport.MOUNTED_DIGSITE), varbitDefault(Transport.MOUNTED_DIGSITE)),
-			new MountedGloryRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, byName(Transport.MOUNTED_GLORY)),
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, -1, Transport.MOUNTED_GLORY,
+				byName(Transport.MOUNTED_GLORY), varbitDefault(Transport.MOUNTED_GLORY)),
 			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, varbitDefault(Transport.NEXUS), byName(Transport.NEXUS)),
 			new JewelleryBoxRecognizer(byName(Transport.JEWELLERY_BOX)));
 
@@ -184,7 +187,10 @@ public class PohTeleportCounterPlugin extends Plugin
 
 	private void refresh()
 	{
-		panel.rebuild(PanelModel.build(store.snapshot(), valuator, config.sortMode()));
+		// ItemManager (via the valuator) must be read on the client thread; the panel
+		// then marshals its own Swing update onto the EDT.
+		clientThread.invokeLater(() ->
+			panel.rebuild(PanelModel.build(store.snapshot(), valuator, config.sortMode())));
 	}
 
 	/** Lowercased display-name -&gt; Destination for one transport (excludes the unknown bucket). */
