@@ -47,6 +47,15 @@ public class MountedAmuletRecognizerTest
 	}
 
 	@Test
+	public void teleportMenuOpenNotCounted()
+	{
+		// "Teleport menu" (opens the dialog) contains "teleport" but must NOT count
+		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE, Map.of(), Map.of());
+		assertEquals(Optional.empty(),
+			r.onMenuInteraction(new MenuInteraction("Teleport menu", "Digsite Pendant", 500), new St()));
+	}
+
+	@Test
 	public void otherObjectIgnored()
 	{
 		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE, Map.of(), Map.of());
