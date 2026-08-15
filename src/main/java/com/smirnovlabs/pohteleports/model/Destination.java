@@ -43,11 +43,15 @@ public enum Destination
 		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
 
 	// --- Mounted Xeric's talisman: CONSUMABLE (lizardman fangs per use; qty TBD in live QA) ---
-	MXERIC_LOOKOUT("mxeric:lookout", "Xeric's Look-out", MOUNTED_XERICS, null,
+	MXERIC_LOOKOUT("mxeric:lookout", "Look-out", MOUNTED_XERICS, null,
+		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
+	MXERIC_GLADE("mxeric:glade", "Glade", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
 
 	// --- Mounted Digsite pendant: ITEM_FRACTION = digsite pendant (5) / 5 ---
 	MDIG_DIGSITE("mdig:digsite", "Digsite", MOUNTED_DIGSITE, null,
+		CostBasis.itemFraction(ItemID.NECKLACE_OF_DIGSITE_5, 5)),
+	MDIG_FOSSIL("mdig:fossil", "Fossil Island", MOUNTED_DIGSITE, null,
 		CostBasis.itemFraction(ItemID.NECKLACE_OF_DIGSITE_5, 5)),
 
 	// --- Per-transport unknown/default buckets (count-only, no gp) ---

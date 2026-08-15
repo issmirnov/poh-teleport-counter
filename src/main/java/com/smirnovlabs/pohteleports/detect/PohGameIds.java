@@ -24,8 +24,8 @@ public final class PohGameIds
 	// Scenery object ids (MenuOptionClicked#getId on the object)
 	public static final int NEXUS_OBJECT = 33410;
 	public static final int MOUNTED_GLORY_OBJECT = -1;
-	public static final int MOUNTED_XERICS_OBJECT = -1;
-	public static final int MOUNTED_DIGSITE_OBJECT = -1;
+	public static final int MOUNTED_XERICS_OBJECT = 33412;
+	public static final int MOUNTED_DIGSITE_OBJECT = 33417;
 
 	// POH region ids allowlist (Client#getMapRegions) — captured live.
 	public static final int[] POH_REGIONS = {8046, 8047};
