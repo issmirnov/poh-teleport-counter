@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -183,6 +184,15 @@ public class PohTeleportCounterPlugin extends Plugin
 	public void onChatMessage(ChatMessage e)
 	{
 		router.onChatMessage(e.getMessage());
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged e)
+	{
+		if (config.debugLogVarbits())
+		{
+			log.info("[POH-CC] varbit={} varp={} value={}", e.getVarbitId(), e.getVarpId(), e.getValue());
+		}
 	}
 
 	private void refresh()
