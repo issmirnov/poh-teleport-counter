@@ -28,6 +28,9 @@ public enum Destination
 		CostBasis.runes(Map.of(ItemID.AIRRUNE, 5, ItemID.LAWRUNE, 1))),
 	NEXUS_FALADOR("nexus:falador", "Falador", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.AIRRUNE, 3, ItemID.WATERRUNE, 1, ItemID.LAWRUNE, 1))),
+	NEXUS_GRAND_EXCHANGE("nexus:grand_exchange", "Grand Exchange", NEXUS, null,
+		CostBasis.runes(Map.of(ItemID.AIRRUNE, 3, ItemID.FIRERUNE, 1, ItemID.LAWRUNE, 1))),
+	NEXUS_CIVITAS("nexus:civitas", "Civitas illa Fortis", NEXUS, null, CostBasis.NONE),
 
 	// --- Jewellery box: ITEM_FRACTION = item GE price / charges; subGroup = the item ---
 	JBOX_GLORY_EDGEVILLE("jbox:glory:edgeville", "Edgeville", JEWELLERY_BOX, "Amulet of glory",

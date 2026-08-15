@@ -75,4 +75,24 @@ public class NexusRecognizerTest
 		assertEquals(Optional.of(Destination.NEXUS_UNKNOWN),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), st));
 	}
+
+	@Test
+	public void listPickStripsKeyboardShortcutPrefix()
+	{
+		// Real nexus interface pick: option='Teleport' target='[4] Civitas illa Fortis'
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault,
+			Map.of("civitas illa fortis", Destination.NEXUS_CIVITAS));
+		assertEquals(Optional.of(Destination.NEXUS_CIVITAS),
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[4] Civitas illa Fortis", 1), new St()));
+	}
+
+	@Test
+	public void objectDirectOptionNamesDestination()
+	{
+		// Real nexus object option: option='Grand Exchange' target='Portal Nexus'
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault,
+			Map.of("grand exchange", Destination.NEXUS_GRAND_EXCHANGE));
+		assertEquals(Optional.of(Destination.NEXUS_GRAND_EXCHANGE),
+			r.onMenuInteraction(new MenuInteraction("Grand Exchange", "Portal Nexus", NEXUS_OBJ), new St()));
+	}
 }

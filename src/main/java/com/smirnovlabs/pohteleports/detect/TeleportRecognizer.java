@@ -17,7 +17,13 @@ public interface TeleportRecognizer
 	 */
 	static Destination matchName(MenuInteraction e, Map<String, Destination> nameMap)
 	{
-		Destination d = nameMap.get(e.optionLower());
-		return d != null ? d : nameMap.get(e.targetLower());
+		Destination d = nameMap.get(stripKey(e.optionLower()));
+		return d != null ? d : nameMap.get(stripKey(e.targetLower()));
+	}
+
+	/** Strip a leading keyboard-shortcut prefix like "[4] " that the Nexus UI adds to destination names. */
+	static String stripKey(String s)
+	{
+		return s.replaceFirst("^\\[[^\\]]*\\]\\s*", "");
 	}
 }
