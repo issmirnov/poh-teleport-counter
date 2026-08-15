@@ -49,7 +49,7 @@ public enum Destination
 		CostBasis.runes(Map.of(ItemID.EARTHRUNE, 2, ItemID.LAWRUNE, 2))),
 	NEXUS_TROLLHEIM("nexus:trollheim", "Trollheim", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.FIRERUNE, 2, ItemID.LAWRUNE, 2))),
-	NEXUS_MARIM("nexus:marim", "Marim", NEXUS, null,
+	NEXUS_MARIM("nexus:marim", "Marim (Ape Atoll)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.FIRERUNE, 2, ItemID.WATERRUNE, 2, ItemID.LAWRUNE, 2))),
 
 	// --- Arceuus spellbook ---
@@ -79,21 +79,21 @@ public enum Destination
 		CostBasis.runes(Map.of(ItemID.BLOODRUNE, 2, ItemID.LAWRUNE, 2, ItemID.SOULRUNE, 2))),
 
 	// --- Ancient Magicks (menu shows the Ancient spell name) ---
-	NEXUS_PADDEWWA("nexus:paddewwa", "Paddewwa", NEXUS, null,
+	NEXUS_PADDEWWA("nexus:paddewwa", "Paddewwa (Edgeville Dungeon)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.AIRRUNE, 1, ItemID.FIRERUNE, 1, ItemID.LAWRUNE, 2))),
-	NEXUS_SENNTISTEN("nexus:senntisten", "Senntisten", NEXUS, null,
+	NEXUS_SENNTISTEN("nexus:senntisten", "Senntisten (Digsite)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.LAWRUNE, 2, ItemID.SOULRUNE, 1))),
-	NEXUS_KHARYRLL("nexus:kharyrll", "Kharyrll", NEXUS, null,
+	NEXUS_KHARYRLL("nexus:kharyrll", "Kharyrll (Canifis)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.BLOODRUNE, 1, ItemID.LAWRUNE, 2))),
-	NEXUS_LASSAR("nexus:lassar", "Lassar", NEXUS, null,
+	NEXUS_LASSAR("nexus:lassar", "Lassar (Ice Mountain)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.WATERRUNE, 4, ItemID.LAWRUNE, 2))),
-	NEXUS_DAREEYAK("nexus:dareeyak", "Dareeyak", NEXUS, null,
+	NEXUS_DAREEYAK("nexus:dareeyak", "Dareeyak (Crazy Archaeologist)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.AIRRUNE, 2, ItemID.FIRERUNE, 3, ItemID.LAWRUNE, 2))),
-	NEXUS_CARRALLANGER("nexus:carrallanger", "Carrallanger", NEXUS, null,
+	NEXUS_CARRALLANGER("nexus:carrallanger", "Carrallanger (Graveyard of Shadows)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.LAWRUNE, 2, ItemID.SOULRUNE, 2))),
-	NEXUS_ANNAKARL("nexus:annakarl", "Annakarl", NEXUS, null,
+	NEXUS_ANNAKARL("nexus:annakarl", "Annakarl (Demonic Ruins)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.BLOODRUNE, 2, ItemID.LAWRUNE, 2))),
-	NEXUS_GHORROCK("nexus:ghorrock", "Ghorrock", NEXUS, null,
+	NEXUS_GHORROCK("nexus:ghorrock", "Ghorrock (Frozen Waste Plateau)", NEXUS, null,
 		CostBasis.runes(Map.of(ItemID.WATERRUNE, 8, ItemID.LAWRUNE, 2))),
 
 	// --- Lunar spellbook ---
