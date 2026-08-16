@@ -9,4 +9,10 @@ public interface GameStateView
 	boolean isInPoh();
 
 	int currentTick();
+
+	/**
+	 * The player's world position as {@code {x, y, plane}}, or null if unavailable.
+	 * Used to confirm a teleport by the large single-tick coordinate jump it causes.
+	 */
+	int[] playerPos();
 }

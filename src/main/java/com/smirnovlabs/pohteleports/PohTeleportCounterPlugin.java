@@ -27,7 +27,9 @@ import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
-import net.runelite.api.events.ChatMessage;
+import net.runelite.api.Player;
+import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
@@ -124,6 +126,18 @@ public class PohTeleportCounterPlugin extends Plugin
 			{
 				return client.getTickCount();
 			}
+
+			@Override
+			public int[] playerPos()
+			{
+				Player p = client.getLocalPlayer();
+				if (p == null)
+				{
+					return null;
+				}
+				WorldPoint wp = p.getWorldLocation();
+				return wp == null ? null : new int[]{wp.getX(), wp.getY(), wp.getPlane()};
+			}
 		};
 
 		// Order matters: object-scoped and armed recognizers before name-only ones.
@@ -143,6 +157,12 @@ public class PohTeleportCounterPlugin extends Plugin
 			store.record(ev);
 			store.persist(configManager);
 			refresh();
+		}, msg ->
+		{
+			if (config.debugLogMenus())
+			{
+				log.info("[POH-CC] {}", msg);
+			}
 		});
 
 		panel = new PohTeleportPanel(mode ->
@@ -179,7 +199,7 @@ public class PohTeleportCounterPlugin extends Plugin
 			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
 		}
-		router.onMenuInteraction(mi); // count FIRST — counting is never gated on the catalog
+		router.onMenuInteraction(mi); // arm/route FIRST — detection is never gated on the catalog
 
 		// Catalog is best-effort: load it AFTER routing, and never let it disturb counting.
 		try
@@ -211,9 +231,10 @@ public class PohTeleportCounterPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onChatMessage(ChatMessage e)
+	public void onGameTick(GameTick e)
 	{
-		router.onChatMessage(e.getMessage());
+		// Confirms/expires an armed teleport by the player's coordinate jump.
+		router.onGameTick();
 	}
 
 	@Subscribe

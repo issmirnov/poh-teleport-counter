@@ -15,6 +15,7 @@ public class MountedAmuletRecognizerTest
 		public int getVarbit(int id) { return v; }
 		public boolean isInPoh() { return true; }
 		public int currentTick() { return 0; }
+		public int[] playerPos() { return null; }
 	}
 
 	@Test
