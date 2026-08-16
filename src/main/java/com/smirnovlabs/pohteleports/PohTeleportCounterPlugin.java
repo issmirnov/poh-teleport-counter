@@ -180,10 +180,11 @@ public class PohTeleportCounterPlugin extends Plugin
 		}
 		boolean wasLoaded = nexusCatalog.isLoaded();
 		nexusCatalog.ensureLoaded(cacheView); // lazy: builds once the cache is up, then a cheap boolean
-		if (!wasLoaded && nexusCatalog.isLoaded() && config.debugLogVarbits())
+		if (!wasLoaded && nexusCatalog.isLoaded())
 		{
-			// One-shot verification that the researched cache ids resolve. If this logs
-			// e.g. "45 names (461=Kharyrll, 855=Civitas illa Fortis)" the ids are correct.
+			// One-shot (fires once per session, no debug flag needed). If this logs
+			// e.g. "45 names (461=Kharyrll, 855=Civitas illa Fortis)" the researched
+			// cache ids are correct. Absence after a few clicks => ids need adjusting.
 			log.info("[POH-CC] nexus catalog loaded: {} names (461={}, 855={})",
 				nexusCatalog.size(), nexusCatalog.name(461), nexusCatalog.name(855));
 		}
