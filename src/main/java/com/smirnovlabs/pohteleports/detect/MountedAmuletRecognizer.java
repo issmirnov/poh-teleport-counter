@@ -9,25 +9,21 @@ import java.util.Optional;
  * Mounted amulets that expose destinations as right-click options directly on
  * the object: mounted glory, mounted Xeric's talisman, mounted Digsite pendant.
  * Scoped by object id. A named option resolves by name; a generic "Teleport"
- * default resolves from the configured-default varbit; other options (Examine,
- * Rub, Configure, ...) are ignored. One instance per transport.
+ * (with no named destination) falls to the count-only Unknown bucket; other
+ * options (Examine, Rub, Configure, "Teleport menu", ...) are ignored. One
+ * instance per transport.
  */
 public class MountedAmuletRecognizer implements TeleportRecognizer
 {
 	private final int objectId;
-	private final int defaultVarbit;
 	private final Transport transport;
 	private final Map<String, Destination> nameMap;
-	private final Map<Integer, Destination> varbitDefaultMap;
 
-	public MountedAmuletRecognizer(int objectId, int defaultVarbit, Transport transport,
-		Map<String, Destination> nameMap, Map<Integer, Destination> varbitDefaultMap)
+	public MountedAmuletRecognizer(int objectId, Transport transport, Map<String, Destination> nameMap)
 	{
 		this.objectId = objectId;
-		this.defaultVarbit = defaultVarbit;
 		this.transport = transport;
 		this.nameMap = nameMap;
-		this.varbitDefaultMap = varbitDefaultMap;
 	}
 
 	@Override
@@ -42,13 +38,12 @@ public class MountedAmuletRecognizer implements TeleportRecognizer
 		{
 			return Optional.of(byName);
 		}
-		// Generic left-click "Teleport" default -> configured-default varbit. Everything
-		// else ("Teleport menu", Examine, Rub, Configure, ...) is not a direct teleport.
+		// A bare "Teleport" on the object (no named destination — mounted amulets have no
+		// configurable left-click default) counts, as the transport's Unknown bucket.
 		String option = e.optionLower();
 		if (!TeleportRecognizer.isIgnoredOption(option) && option.contains("teleport"))
 		{
-			Destination byVarbit = varbitDefaultMap.get(state.getVarbit(defaultVarbit));
-			return Optional.of(byVarbit != null ? byVarbit : Destination.unknownFor(transport));
+			return Optional.of(Destination.unknownFor(transport));
 		}
 		return Optional.empty();
 	}

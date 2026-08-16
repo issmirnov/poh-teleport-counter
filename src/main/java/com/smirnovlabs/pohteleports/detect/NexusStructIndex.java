@@ -41,12 +41,6 @@ public final class NexusStructIndex
 		return MAPPED;
 	}
 
-	/** Number of struct bindings (a couple of destinations own two structs). */
-	public static int size()
-	{
-		return BY_STRUCT.size();
-	}
-
 	private static Map<Integer, Destination> build()
 	{
 		Map<Integer, Destination> m = new HashMap<>();

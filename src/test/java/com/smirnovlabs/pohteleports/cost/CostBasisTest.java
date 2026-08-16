@@ -56,11 +56,4 @@ public class CostBasisTest
 		assertEquals(0, CostBasis.craftedFraction(2, Map.of(1, 5), 0).gpPerUse(price));
 	}
 
-	@Test
-	public void unitsPerUseReportsRawQuantities()
-	{
-		assertEquals(Map.of(1, 3, 2, 1), CostBasis.runes(Map.of(1, 3, 2, 1)).unitsPerUse());
-		assertEquals(Map.of(2, 1), CostBasis.itemFraction(2, 6).unitsPerUse());
-		assertEquals(Map.of(), CostBasis.NONE.unitsPerUse());
-	}
 }

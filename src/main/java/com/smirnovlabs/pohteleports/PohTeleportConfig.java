@@ -40,15 +40,4 @@ public interface PohTeleportConfig extends Config
 	{
 		return false;
 	}
-
-	@ConfigItem(
-		keyName = "debugLogVarbits",
-		name = "Debug: log varbit changes",
-		position = 4,
-		description = "Log varbit/varp changes — used to find the Nexus destination varbit for keyboard selection"
-	)
-	default boolean debugLogVarbits()
-	{
-		return false;
-	}
 }

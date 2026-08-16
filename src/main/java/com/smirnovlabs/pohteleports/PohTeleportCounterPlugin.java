@@ -19,7 +19,6 @@ import com.smirnovlabs.pohteleports.store.TeleportSavingsStore;
 import com.smirnovlabs.pohteleports.ui.PanelModel;
 import com.smirnovlabs.pohteleports.ui.PohTeleportPanel;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +31,6 @@ import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
@@ -155,13 +153,13 @@ public class PohTeleportCounterPlugin extends Plugin
 		// Order matters: object-scoped and armed recognizers before name-only ones.
 		// Mounted glory must precede the jewellery box (they share names like "Edgeville").
 		List<TeleportRecognizer> recognizers = Arrays.asList(
-			new MountedAmuletRecognizer(PohGameIds.MOUNTED_XERICS_OBJECT, PohGameIds.MOUNTED_XERICS_DEFAULT_VARBIT,
-				Transport.MOUNTED_XERICS, byName(Transport.MOUNTED_XERICS), varbitDefault(Transport.MOUNTED_XERICS)),
-			new MountedAmuletRecognizer(PohGameIds.MOUNTED_DIGSITE_OBJECT, PohGameIds.MOUNTED_DIGSITE_DEFAULT_VARBIT,
-				Transport.MOUNTED_DIGSITE, byName(Transport.MOUNTED_DIGSITE), varbitDefault(Transport.MOUNTED_DIGSITE)),
-			new MountedAmuletRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, -1, Transport.MOUNTED_GLORY,
-				byName(Transport.MOUNTED_GLORY), varbitDefault(Transport.MOUNTED_GLORY)),
-			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, varbitDefault(Transport.NEXUS), byName(Transport.NEXUS), nexusCatalog),
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_XERICS_OBJECT, Transport.MOUNTED_XERICS,
+				byName(Transport.MOUNTED_XERICS)),
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_DIGSITE_OBJECT, Transport.MOUNTED_DIGSITE,
+				byName(Transport.MOUNTED_DIGSITE)),
+			new MountedAmuletRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, Transport.MOUNTED_GLORY,
+				byName(Transport.MOUNTED_GLORY)),
+			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, byName(Transport.NEXUS), nexusCatalog),
 			new JewelleryBoxRecognizer(byName(Transport.JEWELLERY_BOX)));
 
 		router = new DetectionRouter(recognizers, state, ev ->
@@ -280,15 +278,6 @@ public class PohTeleportCounterPlugin extends Plugin
 		router.onGameTick();
 	}
 
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged e)
-	{
-		if (config.debugLogVarbits())
-		{
-			log.info("[POH-CC] varbit={} varp={} value={}", e.getVarbitId(), e.getVarpId(), e.getValue());
-		}
-	}
-
 	private void refresh()
 	{
 		// ItemManager (via the valuator) must be read on the client thread; the panel
@@ -309,15 +298,5 @@ public class PohTeleportCounterPlugin extends Plugin
 			}
 		}
 		return m;
-	}
-
-	/**
-	 * Varbit value -&gt; Destination for a transport's configured default. Empty until the
-	 * real varbit encodings are captured in live QA; empty is safe (falls back to the
-	 * transport's Unknown bucket).
-	 */
-	private static Map<Integer, Destination> varbitDefault(Transport t)
-	{
-		return Collections.emptyMap();
 	}
 }

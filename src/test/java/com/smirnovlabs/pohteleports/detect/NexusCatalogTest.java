@@ -9,26 +9,22 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-/** Exercises the cache-folding logic (alt->primary, scry offset, reverse name/object maps) with a map-backed fake. */
+/** Exercises the cache-folding logic (alt-&gt;primary, scry offset, name lookups) with a map-backed fake. */
 public class NexusCatalogTest
 {
 	/** Map-backed {@link CacheView}: one enum (1377) plus per-struct int/string params. */
 	private static final class FakeCache implements CacheView
 	{
-		final Map<Integer, Integer> dest = new LinkedHashMap<>();               // destId -> ownStruct
-		final Map<Integer, Map<Integer, Integer>> ints = new HashMap<>();       // struct -> (param -> int)
-		final Map<Integer, Map<Integer, String>> strs = new HashMap<>();        // struct -> (param -> string)
+		final Map<Integer, Integer> dest = new LinkedHashMap<>();          // destId -> ownStruct
+		final Map<Integer, Map<Integer, Integer>> ints = new HashMap<>();  // struct -> (param -> int)
+		final Map<Integer, Map<Integer, String>> strs = new HashMap<>();   // struct -> (param -> string)
 
-		FakeCache put(int destId, int struct, String name, int marbleObj, int primary)
+		FakeCache put(int destId, int struct, String name, int primary)
 		{
 			dest.put(destId, struct);
 			if (name != null)
 			{
 				strs.computeIfAbsent(struct, k -> new HashMap<>()).put(PohGameIds.STRUCT_PARAM_NAME, name);
-			}
-			if (marbleObj > 0)
-			{
-				ints.computeIfAbsent(struct, k -> new HashMap<>()).put(PohGameIds.STRUCT_PARAM_OBJ_MARBLE, marbleObj);
 			}
 			if (primary > 0)
 			{
@@ -65,9 +61,9 @@ public class NexusCatalogTest
 	private NexusCatalog loaded()
 	{
 		FakeCache c = new FakeCache()
-			.put(10, 450, "Varrock", 1000, 0)     // primary
-			.put(11, 451, null, 1001, 450)        // Grand Exchange: alt of Varrock (name comes from primary)
-			.put(12, 461, "Kharyrll", 1002, 0);   // primary
+			.put(10, 450, "Varrock", 0)       // primary
+			.put(11, 451, null, 450)          // Grand Exchange: alt of Varrock (name comes from primary)
+			.put(12, 461, "Kharyrll", 0);     // primary
 		NexusCatalog cat = new NexusCatalog();
 		cat.ensureLoaded(c);
 		return cat;
@@ -86,7 +82,6 @@ public class NexusCatalogTest
 		cat.ensureLoaded(new FakeCache()); // no dests => enumKeys empty
 		assertFalse(cat.isLoaded());
 		assertNull(cat.structForDestValue(10));
-		assertNull(cat.structForObject(1000));
 		assertNull(cat.structForName("varrock"));
 	}
 
@@ -120,14 +115,6 @@ public class NexusCatalogTest
 	}
 
 	@Test
-	public void objectMapsFoldToPrimaryStruct()
-	{
-		assertEquals(Integer.valueOf(450), loaded().structForObject(1000));
-		assertEquals(Integer.valueOf(450), loaded().structForObject(1001)); // GE skin object -> Varrock primary
-		assertEquals(Integer.valueOf(461), loaded().structForObject(1002));
-	}
-
-	@Test
 	public void nameLookupIsCaseInsensitive()
 	{
 		assertEquals(Integer.valueOf(450), loaded().structForName("VARROCK"));
@@ -135,47 +122,44 @@ public class NexusCatalogTest
 		assertNull(loaded().structForName("nowhere"));
 	}
 
-	// ---- Regression guards for the 2026-08-15 crash: a struct object-param is a
-	// ---- STRING param, so reading it as int throws IllegalArgumentException. The
-	// ---- catalog must survive that (and still load names), never propagating it
-	// ---- into the click handler where it stopped all counting.
+	// ---- Crash-safety: a cache read that throws (e.g. a wrong-typed param, the 2026-08-15
+	// ---- getIntValue-on-string-param crash) must never propagate into the click handler. ----
 
 	@Test
-	public void survivesObjectParamThatThrowsAndStillLoadsNames()
+	public void survivesAThrowingStructReadAndStillLoadsOtherNames()
 	{
-		CacheView objThrows = new CacheView()
+		CacheView oneBad = new CacheView()
 		{
 			public int[] enumKeys(int id)
 			{
-				return id == PohGameIds.NEXUS_DEST_ENUM ? new int[]{10} : new int[0];
+				return id == PohGameIds.NEXUS_DEST_ENUM ? new int[]{10, 11} : new int[0];
 			}
 
 			public int enumValue(int id, int key)
 			{
-				return id == PohGameIds.NEXUS_DEST_ENUM && key == 10 ? 450 : 0;
+				return key == 10 ? 450 : 461;
 			}
 
 			public int structInt(int structId, int paramId)
 			{
-				if (paramId == PohGameIds.STRUCT_PARAM_PRIMARY_STRUCT)
+				if (structId == 450)
 				{
-					return 0; // primary reads fine (absent), like the real cache
+					throw new IllegalArgumentException("trying to get int from string param");
 				}
-				throw new IllegalArgumentException("trying to get int from string param"); // object params
+				return 0;
 			}
 
 			public String structString(int structId, int paramId)
 			{
-				return paramId == PohGameIds.STRUCT_PARAM_NAME ? "Varrock" : null;
+				return paramId == PohGameIds.STRUCT_PARAM_NAME && structId == 461 ? "Kharyrll" : null;
 			}
 		};
 
 		NexusCatalog cat = new NexusCatalog();
-		cat.ensureLoaded(objThrows); // must NOT throw
+		cat.ensureLoaded(oneBad); // must NOT throw
 		assertTrue(cat.isLoaded());
-		assertEquals("Varrock", cat.name(450));
-		assertEquals(Integer.valueOf(450), cat.structForName("varrock"));
-		assertNull(cat.structForObject(12345)); // objects never mapped, but no crash
+		assertEquals("Kharyrll", cat.name(461));  // good destination loaded
+		assertNull(cat.structForName("varrock")); // throwing destination skipped
 	}
 
 	@Test

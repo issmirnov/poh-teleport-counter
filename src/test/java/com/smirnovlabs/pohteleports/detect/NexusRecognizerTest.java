@@ -1,6 +1,9 @@
 package com.smirnovlabs.pohteleports.detect;
 
 import com.smirnovlabs.pohteleports.model.Destination;
+import com.smirnovlabs.pohteleports.model.Transport;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.Test;
@@ -13,7 +16,6 @@ public class NexusRecognizerTest
 	private final Map<String, Destination> nameMap = Map.of(
 		"varrock", Destination.NEXUS_VARROCK,
 		"camelot", Destination.NEXUS_CAMELOT);
-	private final Map<Integer, Destination> varbitDefault = Map.of(2, Destination.NEXUS_CAMELOT);
 
 	private static class St implements GameStateView
 	{
@@ -26,7 +28,7 @@ public class NexusRecognizerTest
 
 	private NexusRecognizer rec()
 	{
-		return new NexusRecognizer(NEXUS_OBJ, varbitDefault, nameMap);
+		return new NexusRecognizer(NEXUS_OBJ, nameMap);
 	}
 
 	@Test
@@ -34,15 +36,6 @@ public class NexusRecognizerTest
 	{
 		assertEquals(Optional.of(Destination.NEXUS_VARROCK),
 			rec().onMenuInteraction(new MenuInteraction("Teleport", "Varrock", 0), new St()));
-	}
-
-	@Test
-	public void genericDefaultOnNexusObjectResolvesByVarbit()
-	{
-		St st = new St();
-		st.v = 2; // encodes Camelot
-		assertEquals(Optional.of(Destination.NEXUS_CAMELOT),
-			rec().onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), st));
 	}
 
 	@Test
@@ -68,34 +61,31 @@ public class NexusRecognizerTest
 	}
 
 	@Test
-	public void unknownDefaultFallsBackToBucket()
+	public void genericDefaultWithoutCatalogFallsToUnknown()
 	{
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), nameMap);
-		St st = new St();
-		st.v = 99;
+		// A bare left-click "Teleport" on the nexus object, no catalog to resolve it -> Unknown.
 		assertEquals(Optional.of(Destination.NEXUS_UNKNOWN),
-			r.onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), st));
+			rec().onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), new St()));
 	}
 
 	@Test
 	public void listPickStripsKeyboardShortcutPrefix()
 	{
 		// Real nexus interface pick: option='Teleport' target='[4] Civitas illa Fortis'
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault,
-			Map.of("civitas illa fortis", Destination.NEXUS_CIVITAS));
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of("civitas illa fortis", Destination.NEXUS_CIVITAS));
 		assertEquals(Optional.of(Destination.NEXUS_CIVITAS),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "[4] Civitas illa Fortis", 1), new St()));
 	}
 
 	/** Build the nexus name map exactly like the plugin's byName(NEXUS) does. */
-	private static java.util.Map<String, Destination> realNexusNameMap()
+	private static Map<String, Destination> realNexusNameMap()
 	{
-		java.util.Map<String, Destination> m = new java.util.HashMap<>();
+		Map<String, Destination> m = new HashMap<>();
 		for (Destination d : Destination.values())
 		{
-			if (d.getTransport() == com.smirnovlabs.pohteleports.model.Transport.NEXUS && !d.getId().endsWith(":unknown"))
+			if (d.getTransport() == Transport.NEXUS && !d.getId().endsWith(":unknown"))
 			{
-				m.put(d.getDisplayName().toLowerCase(java.util.Locale.ROOT), d);
+				m.put(d.getDisplayName().toLowerCase(Locale.ROOT), d);
 			}
 		}
 		return m;
@@ -104,9 +94,8 @@ public class NexusRecognizerTest
 	@Test
 	public void realNameMapMatchesCapturedMenuPicks()
 	{
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), realNexusNameMap());
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, realNexusNameMap());
 		St st = new St();
-		// Exactly as captured live:
 		assertEquals("West Ardougne map-pick", Optional.of(Destination.NEXUS_WEST_ARDOUGNE),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "[K] West Ardougne", 1), st));
 		assertEquals("Civitas list-pick", Optional.of(Destination.NEXUS_CIVITAS),
@@ -118,66 +107,62 @@ public class NexusRecognizerTest
 	@Test
 	public void nonBreakingSpaceSeparatorStillMatches()
 	{
-		// Live nexus picks separate the "[K]" shortcut from the name with a
-		// non-breaking space (U+00A0), not a normal space — stripKey must fold it
-		// or the lookup misses (the 2026-08-16 "no match" bug on every map pick).
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), realNexusNameMap());
+		// Live nexus picks separate the "[K]" shortcut from the name with a non-breaking
+		// space (U+00A0), not a normal space — stripKey must fold it (the 2026-08-16 bug).
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, realNexusNameMap());
 		assertEquals(Optional.of(Destination.NEXUS_WEST_ARDOUGNE),
-			r.onMenuInteraction(new MenuInteraction("Teleport", "[K] West Ardougne", 1), new St()));
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[K] West Ardougne", 1), new St()));
 		assertEquals(Optional.of(Destination.NEXUS_DAREEYAK),
-			r.onMenuInteraction(new MenuInteraction("Teleport", "[R] Dareeyak (Crazy Archaeologist)", 1), new St()));
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[R] Dareeyak (Crazy Archaeologist)", 1), new St()));
 	}
 
 	@Test
 	public void objectDirectOptionNamesDestination()
 	{
 		// Real nexus object option: option='Grand Exchange' target='Portal Nexus'
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault,
-			Map.of("grand exchange", Destination.NEXUS_GRAND_EXCHANGE));
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of("grand exchange", Destination.NEXUS_GRAND_EXCHANGE));
 		assertEquals(Optional.of(Destination.NEXUS_GRAND_EXCHANGE),
 			r.onMenuInteraction(new MenuInteraction("Grand Exchange", "Portal Nexus", NEXUS_OBJ), new St()));
 	}
 
-	// ---- Cache-catalog rescue layer (only fires when the catalog is loaded) ----
+	// ---- Cache-catalog rescue + left-click-default layer (only fires when the catalog is loaded) ----
 
 	@Test
 	public void catalogRescuesUnrecognizedNameViaCache()
 	{
 		// Name we deliberately do NOT have in the name map, but the cache does (struct 6417 = "Dareeyak").
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault, nameMap, loadedCatalog());
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, nameMap, loadedCatalog());
 		assertEquals(Optional.of(Destination.NEXUS_DAREEYAK),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "[F] Dareeyak", 0), new St()));
 	}
 
 	@Test
-	public void catalogResolvesGenericDefaultViaVarbit()
+	public void catalogResolvesLeftClickDefaultViaVarbit()
 	{
-		// Left-click "Teleport" on the object; varbit encodes dest 21 -> struct 461 = Kharyrll.
+		// Left-click "Teleport" on the object; varbit 6653 encodes dest 21 -> struct 461 = Kharyrll.
 		St st = new St();
 		st.v = 21;
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault, nameMap, loadedCatalog());
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, nameMap, loadedCatalog());
 		assertEquals(Optional.of(Destination.NEXUS_KHARYRLL),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), st));
 	}
 
 	@Test
-	public void unloadedCatalogBehavesLikeToday()
+	public void unloadedCatalogFallsToUnknown()
 	{
 		// Catalog present but never loaded (empty cache) -> generic default falls to the Unknown bucket.
 		NexusCatalog cold = new NexusCatalog();
 		cold.ensureLoaded(new EmptyCache());
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), nameMap, cold);
-		St st = new St();
-		st.v = 99;
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, nameMap, cold);
 		assertEquals(Optional.of(Destination.NEXUS_UNKNOWN),
-			r.onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), st));
+			r.onMenuInteraction(new MenuInteraction("Teleport", "", NEXUS_OBJ), new St()));
 	}
 
 	@Test
 	public void catalogDoesNotRescueForeignTeleports()
 	{
 		// A jewellery-box "Ferox Enclave" (not a nexus cache name, not on the nexus object) stays unclaimed.
-		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, varbitDefault, nameMap, loadedCatalog());
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, nameMap, loadedCatalog());
 		assertEquals(Optional.empty(),
 			r.onMenuInteraction(new MenuInteraction("Teleport", "Ferox Enclave", 555), new St()));
 	}
@@ -189,7 +174,7 @@ public class NexusRecognizerTest
 		return c;
 	}
 
-	/** Minimal cache: two destinations (Dareeyak / Kharyrll) with names, no objects/alts. */
+	/** Minimal cache: two destinations (Dareeyak / Kharyrll) with names, no primary/alt. */
 	private static final class RecCache implements CacheView
 	{
 		private final Map<Integer, Integer> dest = Map.of(20, 6417, 21, 461);

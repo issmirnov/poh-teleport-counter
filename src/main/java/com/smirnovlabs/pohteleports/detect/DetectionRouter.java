@@ -67,6 +67,7 @@ public class DetectionRouter
 			{
 				pending = d.get();
 				pendingArmTick = state.currentTick();
+				lastPos = state.playerPos(); // anchor for the jump check; ticks are idle until now
 				trace("armed " + pending + " (awaiting teleport): " + desc(e));
 				return;
 			}
@@ -75,23 +76,28 @@ public class DetectionRouter
 			+ "' target='" + TeleportRecognizer.stripKey(e.targetLower()) + "']");
 	}
 
-	/** Every game tick: confirm a pending teleport on a big coord jump, else expire it. */
+	/**
+	 * Every game tick: confirm a pending teleport on a big coord jump, else expire it.
+	 * Does <em>nothing</em> (not even a position read) when no teleport is armed, which is
+	 * almost always — position is only tracked during the brief arm-to-confirm window.
+	 */
 	public void onGameTick()
 	{
-		int[] pos = state.playerPos();
-		if (pending != null)
+		if (pending == null)
 		{
-			if (jumped(lastPos, pos))
-			{
-				trace("counted " + pending + " (teleport confirmed by coord jump)");
-				sink.accept(new TeleportEvent(pending, state.currentTick()));
-				pending = null;
-			}
-			else if (state.currentTick() - pendingArmTick >= ARM_WINDOW_TICKS)
-			{
-				trace("discarded " + pending + " (no teleport within window)");
-				pending = null;
-			}
+			return;
+		}
+		int[] pos = state.playerPos();
+		if (jumped(lastPos, pos))
+		{
+			trace("counted " + pending + " (teleport confirmed by coord jump)");
+			sink.accept(new TeleportEvent(pending, state.currentTick()));
+			pending = null;
+		}
+		else if (state.currentTick() - pendingArmTick >= ARM_WINDOW_TICKS)
+		{
+			trace("discarded " + pending + " (no teleport within window)");
+			pending = null;
 		}
 		lastPos = pos;
 	}
