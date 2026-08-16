@@ -69,6 +69,7 @@ public class PohTeleportCounterPlugin extends Plugin
 	private DetectionRouter router;
 	private PohTeleportPanel panel;
 	private NavigationButton navButton;
+	private boolean catalogWarned;
 
 	@Provides
 	PohTeleportConfig provideConfig(ConfigManager cm)
@@ -178,17 +179,30 @@ public class PohTeleportCounterPlugin extends Plugin
 			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
 		}
-		boolean wasLoaded = nexusCatalog.isLoaded();
-		nexusCatalog.ensureLoaded(cacheView); // lazy: builds once the cache is up, then a cheap boolean
-		if (!wasLoaded && nexusCatalog.isLoaded())
+		router.onMenuInteraction(mi); // count FIRST — counting is never gated on the catalog
+
+		// Catalog is best-effort: load it AFTER routing, and never let it disturb counting.
+		try
 		{
-			// One-shot (fires once per session, no debug flag needed). If this logs
-			// e.g. "45 names (461=Kharyrll, 855=Civitas illa Fortis)" the researched
-			// cache ids are correct. Absence after a few clicks => ids need adjusting.
-			log.info("[POH-CC] nexus catalog loaded: {} names (461={}, 855={})",
-				nexusCatalog.size(), nexusCatalog.name(461), nexusCatalog.name(855));
+			boolean wasLoaded = nexusCatalog.isLoaded();
+			nexusCatalog.ensureLoaded(cacheView); // lazy: builds once the cache is up, then a cheap boolean
+			if (!wasLoaded && nexusCatalog.isLoaded())
+			{
+				// One-shot (fires once per session, no debug flag needed). If this logs
+				// e.g. "45 names (461=Kharyrll, 855=Civitas illa Fortis)" the researched
+				// cache ids are correct. Absence after a few clicks => ids need adjusting.
+				log.info("[POH-CC] nexus catalog loaded: {} names (461={}, 855={})",
+					nexusCatalog.size(), nexusCatalog.name(461), nexusCatalog.name(855));
+			}
 		}
-		router.onMenuInteraction(mi);
+		catch (RuntimeException ex)
+		{
+			if (!catalogWarned)
+			{
+				catalogWarned = true;
+				log.warn("[POH-CC] nexus catalog load failed (counting unaffected)", ex);
+			}
+		}
 	}
 
 	private static String strip(String s)

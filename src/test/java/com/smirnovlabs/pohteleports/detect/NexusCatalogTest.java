@@ -134,4 +134,78 @@ public class NexusCatalogTest
 		assertEquals(Integer.valueOf(461), loaded().structForName("kharyrll"));
 		assertNull(loaded().structForName("nowhere"));
 	}
+
+	// ---- Regression guards for the 2026-08-15 crash: a struct object-param is a
+	// ---- STRING param, so reading it as int throws IllegalArgumentException. The
+	// ---- catalog must survive that (and still load names), never propagating it
+	// ---- into the click handler where it stopped all counting.
+
+	@Test
+	public void survivesObjectParamThatThrowsAndStillLoadsNames()
+	{
+		CacheView objThrows = new CacheView()
+		{
+			public int[] enumKeys(int id)
+			{
+				return id == PohGameIds.NEXUS_DEST_ENUM ? new int[]{10} : new int[0];
+			}
+
+			public int enumValue(int id, int key)
+			{
+				return id == PohGameIds.NEXUS_DEST_ENUM && key == 10 ? 450 : 0;
+			}
+
+			public int structInt(int structId, int paramId)
+			{
+				if (paramId == PohGameIds.STRUCT_PARAM_PRIMARY_STRUCT)
+				{
+					return 0; // primary reads fine (absent), like the real cache
+				}
+				throw new IllegalArgumentException("trying to get int from string param"); // object params
+			}
+
+			public String structString(int structId, int paramId)
+			{
+				return paramId == PohGameIds.STRUCT_PARAM_NAME ? "Varrock" : null;
+			}
+		};
+
+		NexusCatalog cat = new NexusCatalog();
+		cat.ensureLoaded(objThrows); // must NOT throw
+		assertTrue(cat.isLoaded());
+		assertEquals("Varrock", cat.name(450));
+		assertEquals(Integer.valueOf(450), cat.structForName("varrock"));
+		assertNull(cat.structForObject(12345)); // objects never mapped, but no crash
+	}
+
+	@Test
+	public void neverPropagatesWhenEveryStructReadThrows()
+	{
+		CacheView allThrow = new CacheView()
+		{
+			public int[] enumKeys(int id)
+			{
+				return id == PohGameIds.NEXUS_DEST_ENUM ? new int[]{10, 11} : new int[0];
+			}
+
+			public int enumValue(int id, int key)
+			{
+				return 450;
+			}
+
+			public int structInt(int structId, int paramId)
+			{
+				throw new IllegalArgumentException("boom");
+			}
+
+			public String structString(int structId, int paramId)
+			{
+				throw new IllegalStateException("boom");
+			}
+		};
+
+		NexusCatalog cat = new NexusCatalog();
+		cat.ensureLoaded(allThrow); // must NOT throw
+		assertFalse(cat.isLoaded()); // nothing loaded, but the client handler is safe
+	}
 }

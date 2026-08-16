@@ -48,37 +48,50 @@ public final class NexusCatalog
 		}
 		for (int destId : keys)
 		{
-			int ownStruct = cache.enumValue(PohGameIds.NEXUS_DEST_ENUM, destId);
-			if (ownStruct <= 0)
+			try
 			{
-				continue;
+				loadDestination(cache, destId);
 			}
-			int primary = cache.structInt(ownStruct, PohGameIds.STRUCT_PARAM_PRIMARY_STRUCT);
-			int structId = primary > 0 ? primary : ownStruct;
-
-			destToStruct.put(destId, structId);
-			destToStruct.put(destId + SCRY_OFFSET, structId); // scry variant resolves to the same destination
-
-			if (!structToName.containsKey(structId))
+			catch (RuntimeException ex)
 			{
-				String name = cache.structString(structId, PohGameIds.STRUCT_PARAM_NAME);
-				if (name != null && !name.isEmpty())
-				{
-					structToName.put(structId, name);
-					nameToStruct.put(name.toLowerCase(Locale.ROOT), structId);
-				}
-			}
-			for (int p : new int[]{PohGameIds.STRUCT_PARAM_OBJ_MARBLE, PohGameIds.STRUCT_PARAM_OBJ_GILDED,
-				PohGameIds.STRUCT_PARAM_OBJ_CRYSTALLINE})
-			{
-				int obj = cache.structInt(ownStruct, p);
-				if (obj > 0)
-				{
-					objectToStruct.put(obj, structId);
-				}
+				// A misbehaving cache read (wrong-typed or absent param) must never abort
+				// the whole catalog — skip just this destination and keep the rest.
 			}
 		}
 		loaded = !structToName.isEmpty();
+	}
+
+	private void loadDestination(CacheView cache, int destId)
+	{
+		int ownStruct = cache.enumValue(PohGameIds.NEXUS_DEST_ENUM, destId);
+		if (ownStruct <= 0)
+		{
+			return;
+		}
+		int primary = cache.structInt(ownStruct, PohGameIds.STRUCT_PARAM_PRIMARY_STRUCT);
+		int structId = primary > 0 ? primary : ownStruct;
+
+		destToStruct.put(destId, structId);
+		destToStruct.put(destId + SCRY_OFFSET, structId); // scry variant resolves to the same destination
+
+		if (!structToName.containsKey(structId))
+		{
+			String name = cache.structString(structId, PohGameIds.STRUCT_PARAM_NAME);
+			if (name != null && !name.isEmpty())
+			{
+				structToName.put(structId, name);
+				nameToStruct.put(name.toLowerCase(Locale.ROOT), structId);
+			}
+		}
+		for (int p : new int[]{PohGameIds.STRUCT_PARAM_OBJ_MARBLE, PohGameIds.STRUCT_PARAM_OBJ_GILDED,
+			PohGameIds.STRUCT_PARAM_OBJ_CRYSTALLINE})
+		{
+			int obj = cache.structInt(ownStruct, p);
+			if (obj > 0)
+			{
+				objectToStruct.put(obj, structId);
+			}
+		}
 	}
 
 	public boolean isLoaded()
