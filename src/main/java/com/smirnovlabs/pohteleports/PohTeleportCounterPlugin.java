@@ -6,6 +6,7 @@ import com.smirnovlabs.pohteleports.detect.CacheView;
 import com.smirnovlabs.pohteleports.detect.ClientCacheView;
 import com.smirnovlabs.pohteleports.detect.DetectionRouter;
 import com.smirnovlabs.pohteleports.detect.GameStateView;
+import com.smirnovlabs.pohteleports.detect.HouseOwnershipTracker;
 import com.smirnovlabs.pohteleports.detect.JewelleryBoxRecognizer;
 import com.smirnovlabs.pohteleports.detect.MenuInteraction;
 import com.smirnovlabs.pohteleports.detect.MountedAmuletRecognizer;
@@ -67,6 +68,7 @@ public class PohTeleportCounterPlugin extends Plugin
 
 	private final TeleportSavingsStore store = new TeleportSavingsStore();
 	private final NexusCatalog nexusCatalog = new NexusCatalog();
+	private final HouseOwnershipTracker houseTracker = new HouseOwnershipTracker();
 	private SavingsValuator valuator;
 	private CacheView cacheView;
 	private DetectionRouter router;
@@ -105,30 +107,14 @@ public class PohTeleportCounterPlugin extends Plugin
 			@Override
 			public boolean isInPoh()
 			{
-				// A POH — your own OR a guest's — is an instanced region, so this is the
-				// reliable signal. Guest houses use different map regions than your own
-				// (e.g. [8302,8303] vs [8046,8047]), which a fixed region allowlist misses.
-				// The region list stays as a belt-and-braces fallback.
-				if (client.isInInstancedRegion())
-				{
-					return true;
-				}
-				int[] regions = client.getMapRegions();
-				if (regions == null)
+				// A POH — your own OR a guest's — is an instanced region. Whether to count a
+				// guest's house is a config toggle; own-vs-guest comes from the entry method
+				// (HouseOwnershipTracker), since map regions track house location, not owner.
+				if (!client.isInInstancedRegion())
 				{
 					return false;
 				}
-				for (int r : PohGameIds.POH_REGIONS)
-				{
-					for (int cur : regions)
-					{
-						if (cur == r)
-						{
-							return true;
-						}
-					}
-				}
-				return false;
+				return config.countGuestPoh() || !houseTracker.inGuestHouse();
 			}
 
 			@Override
@@ -210,6 +196,13 @@ public class PohTeleportCounterPlugin extends Plugin
 				mi.getOption(), mi.getTarget(), mi.getId(), e.getParam0(), e.getParam1(), e.getMenuAction(),
 				client.isInInstancedRegion(), Arrays.toString(client.getMapRegions()));
 		}
+		// "Visit"/"Visit-Last" on a House Advertisement board means the next house we enter
+		// is a guest's — the tracker uses this to honour the "count guest POHs" toggle.
+		if (e.getId() == PohGameIds.HOUSE_ADVERTISEMENT_OBJECT && mi.optionLower().contains("visit"))
+		{
+			houseTracker.onBoardVisit();
+		}
+
 		// A mounted amulet's "Teleport menu" opens the generic MENU_NEW option interface;
 		// remember the amulet so the subsequent pick can be attributed to it.
 		if ((e.getId() == PohGameIds.MOUNTED_XERICS_OBJECT || e.getId() == PohGameIds.MOUNTED_DIGSITE_OBJECT)
@@ -274,8 +267,8 @@ public class PohTeleportCounterPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick e)
 	{
-		// Confirms/expires an armed teleport by the player's coordinate jump.
-		router.onGameTick();
+		router.onGameTick(); // confirm/expire an armed teleport by the coord jump
+		houseTracker.onTick(client.isInInstancedRegion()); // track own-vs-guest house by entry method
 	}
 
 	private void refresh()

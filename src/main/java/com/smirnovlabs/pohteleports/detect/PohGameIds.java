@@ -27,7 +27,6 @@ public final class PohGameIds
 	public static final int MOUNTED_GLORY_OBJECT = 13523; // ObjectID.POH_TROPHY_AMULETOFGLORY_4
 	public static final int MOUNTED_XERICS_OBJECT = 33412;
 	public static final int MOUNTED_DIGSITE_OBJECT = 33417;
-
-	// Your own POH's map regions (Client#getMapRegions) — a fallback to isInInstancedRegion().
-	public static final int[] POH_REGIONS = {8046, 8047};
+	/** House Advertisement board — a "Visit"/"Visit-Last" on it enters another player's house. */
+	public static final int HOUSE_ADVERTISEMENT_OBJECT = 29091;
 }
