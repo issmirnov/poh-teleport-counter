@@ -15,8 +15,9 @@ import static com.smirnovlabs.pohteleports.model.Transport.NEXUS;
  *
  * <p>Display names match the in-game menu text (the Nexus UI's "[N] " shortcut
  * prefix is stripped before matching). Costs are wiki-sourced: Nexus =
- * equivalent spellbook teleport runes; jewellery box / mounted glory / mounted
- * Digsite = item GE price ÷ charges; mounted Xeric's = lizardman fangs. Item
+ * equivalent spellbook teleport runes; jewellery box / mounted glory = item GE
+ * price ÷ charges; mounted Digsite = (ruby necklace + Enchant Ruby Jewellery
+ * runes) ÷ 5 (a crafted item, not bought); mounted Xeric's = lizardman fangs. Item
  * ids are real {@code gameval.ItemID} constants. A destination whose exact menu
  * label differs from the name here simply falls into the transport's
  * {@code *_UNKNOWN} bucket (still counted) until corrected.
@@ -208,13 +209,13 @@ public enum Destination
 	MXERIC_HONOUR("mxeric:honour", "Honour", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
 
-	// ===================== MOUNTED DIGSITE PENDANT: itemFraction = pendant(5) / 5 =====================
+	// ============ MOUNTED DIGSITE PENDANT: craftedFraction = (ruby necklace + enchant runes) / 5 ============
 	MDIG_DIGSITE("mdig:digsite", "Digsite", MOUNTED_DIGSITE, null,
-		CostBasis.itemFraction(ItemID.NECKLACE_OF_DIGSITE_5, 5)),
+		CostBasis.craftedFraction(ItemID.RUBY_NECKLACE, Map.of(ItemID.FIRERUNE, 5, ItemID.COSMICRUNE, 1), 5)),
 	MDIG_FOSSIL("mdig:fossil", "Fossil Island", MOUNTED_DIGSITE, null,
-		CostBasis.itemFraction(ItemID.NECKLACE_OF_DIGSITE_5, 5)),
+		CostBasis.craftedFraction(ItemID.RUBY_NECKLACE, Map.of(ItemID.FIRERUNE, 5, ItemID.COSMICRUNE, 1), 5)),
 	MDIG_LITHKREN("mdig:lithkren", "Lithkren", MOUNTED_DIGSITE, null,
-		CostBasis.itemFraction(ItemID.NECKLACE_OF_DIGSITE_5, 5)),
+		CostBasis.craftedFraction(ItemID.RUBY_NECKLACE, Map.of(ItemID.FIRERUNE, 5, ItemID.COSMICRUNE, 1), 5)),
 
 	// ===================== Per-transport unknown/default buckets (count-only, no gp) =====================
 	NEXUS_UNKNOWN("nexus:unknown", "Default / Unknown", NEXUS, null, CostBasis.NONE),

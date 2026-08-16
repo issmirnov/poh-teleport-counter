@@ -44,6 +44,19 @@ public class CostBasisTest
 	}
 
 	@Test
+	public void craftedFractionAddsMakeRunesThenDividesByCharges()
+	{
+		// (base 300 + 5*fire@5 + 1*cosmic@100) / 5 = (300 + 25 + 100) / 5 = 85
+		assertEquals(85, CostBasis.craftedFraction(2, Map.of(1, 5, 3, 1), 5).gpPerUse(price));
+	}
+
+	@Test
+	public void craftedFractionZeroChargesIsZero()
+	{
+		assertEquals(0, CostBasis.craftedFraction(2, Map.of(1, 5), 0).gpPerUse(price));
+	}
+
+	@Test
 	public void unitsPerUseReportsRawQuantities()
 	{
 		assertEquals(Map.of(1, 3, 2, 1), CostBasis.runes(Map.of(1, 3, 2, 1)).unitsPerUse());

@@ -77,6 +77,40 @@ public abstract class CostBasis
 		};
 	}
 
+	/**
+	 * A single use of an item you <em>craft</em> rather than buy: the base item's GE
+	 * price plus the runes to make it, divided across its charges. The mounted
+	 * Digsite pendant is a Ruby necklace enchanted with Enchant Ruby Jewellery, so
+	 * its true per-use cost is (ruby necklace + 5 fire + 1 cosmic) / 5.
+	 */
+	public static CostBasis craftedFraction(int baseItemId, Map<Integer, Integer> makeRunes, int charges)
+	{
+		final Map<Integer, Integer> runes = Map.copyOf(makeRunes);
+		return new CostBasis()
+		{
+			@Override
+			public long gpPerUse(IntUnaryOperator priceFn)
+			{
+				if (charges <= 0)
+				{
+					return 0;
+				}
+				long total = priceFn.applyAsInt(baseItemId);
+				for (Map.Entry<Integer, Integer> e : runes.entrySet())
+				{
+					total += (long) priceFn.applyAsInt(e.getKey()) * e.getValue();
+				}
+				return total / charges;
+			}
+
+			@Override
+			public Map<Integer, Integer> unitsPerUse()
+			{
+				return Map.of(baseItemId, 1);
+			}
+		};
+	}
+
 	public static final CostBasis NONE = new CostBasis()
 	{
 		@Override
