@@ -71,7 +71,8 @@ public class DetectionRouter
 				return;
 			}
 		}
-		trace("no match: " + desc(e));
+		trace("no match: " + desc(e) + " [norm option='" + TeleportRecognizer.stripKey(e.optionLower())
+			+ "' target='" + TeleportRecognizer.stripKey(e.targetLower()) + "']");
 	}
 
 	/** Every game tick: confirm a pending teleport on a big coord jump, else expire it. */

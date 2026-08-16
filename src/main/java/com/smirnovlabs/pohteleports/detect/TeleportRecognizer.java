@@ -61,9 +61,22 @@ public interface TeleportRecognizer
 		return d != null ? d : nameMap.get(stripKey(e.targetLower()));
 	}
 
-	/** Strip a leading keyboard-shortcut prefix like "[4] " that the Nexus UI adds to destination names. */
+	/**
+	 * Normalize a menu label for name matching: strip a leading keyboard-shortcut
+	 * prefix like "[4] " / "[K] " that the Nexus UI adds, and fold the whitespace.
+	 *
+	 * <p>The Nexus interface separates the shortcut from the name with a
+	 * <em>non-breaking</em> space (U+00A0, regex {@code \xA0}), which Java's plain
+	 * {@code \s} does NOT match. Left as-is, {@code stripKey("[K] West Ardougne")}
+	 * keeps the U+00A0 and returns " west ardougne", so the name lookup misses
+	 * and every menu/map pick falls through to "no match". Folding {@code \xA0}
+	 * together with normal whitespace fixes it. All-ASCII source on purpose — no
+	 * literal non-breaking space to be mangled by an editor.
+	 */
 	static String stripKey(String s)
 	{
-		return s.replaceFirst("^\\[[^\\]]*\\]\\s*", "");
+		return s.replaceAll("[\\s\\xA0]+", " ")      // fold whitespace incl. non-breaking space
+			.replaceFirst("^\\[[^\\]]*\\] ?", "")    // drop a leading "[4] "/"[K] " shortcut
+			.trim();
 	}
 }

@@ -87,6 +87,47 @@ public class NexusRecognizerTest
 			r.onMenuInteraction(new MenuInteraction("Teleport", "[4] Civitas illa Fortis", 1), new St()));
 	}
 
+	/** Build the nexus name map exactly like the plugin's byName(NEXUS) does. */
+	private static java.util.Map<String, Destination> realNexusNameMap()
+	{
+		java.util.Map<String, Destination> m = new java.util.HashMap<>();
+		for (Destination d : Destination.values())
+		{
+			if (d.getTransport() == com.smirnovlabs.pohteleports.model.Transport.NEXUS && !d.getId().endsWith(":unknown"))
+			{
+				m.put(d.getDisplayName().toLowerCase(java.util.Locale.ROOT), d);
+			}
+		}
+		return m;
+	}
+
+	@Test
+	public void realNameMapMatchesCapturedMenuPicks()
+	{
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), realNexusNameMap());
+		St st = new St();
+		// Exactly as captured live:
+		assertEquals("West Ardougne map-pick", Optional.of(Destination.NEXUS_WEST_ARDOUGNE),
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[K] West Ardougne", 1), st));
+		assertEquals("Civitas list-pick", Optional.of(Destination.NEXUS_CIVITAS),
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[4] Civitas illa Fortis", 1), st));
+		assertEquals("Grand Exchange direct object click", Optional.of(Destination.NEXUS_GRAND_EXCHANGE),
+			r.onMenuInteraction(new MenuInteraction("Grand Exchange", "Portal Nexus", NEXUS_OBJ), st));
+	}
+
+	@Test
+	public void nonBreakingSpaceSeparatorStillMatches()
+	{
+		// Live nexus picks separate the "[K]" shortcut from the name with a
+		// non-breaking space (U+00A0), not a normal space — stripKey must fold it
+		// or the lookup misses (the 2026-08-16 "no match" bug on every map pick).
+		NexusRecognizer r = new NexusRecognizer(NEXUS_OBJ, Map.of(), realNexusNameMap());
+		assertEquals(Optional.of(Destination.NEXUS_WEST_ARDOUGNE),
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[K] West Ardougne", 1), new St()));
+		assertEquals(Optional.of(Destination.NEXUS_DAREEYAK),
+			r.onMenuInteraction(new MenuInteraction("Teleport", "[R] Dareeyak (Crazy Archaeologist)", 1), new St()));
+	}
+
 	@Test
 	public void objectDirectOptionNamesDestination()
 	{
