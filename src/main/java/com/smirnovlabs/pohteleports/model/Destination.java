@@ -198,15 +198,15 @@ public enum Destination
 		CostBasis.itemFraction(ItemID.AMULET_OF_GLORY_6, 6)),
 
 	// ===================== MOUNTED XERIC'S TALISMAN: consumable (1 lizardman fang/use) =====================
-	MXERIC_LOOKOUT("mxeric:lookout", "Look-out", MOUNTED_XERICS, null,
+	MXERIC_LOOKOUT("mxeric:lookout", "Xeric's Lookout", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
-	MXERIC_GLADE("mxeric:glade", "Glade", MOUNTED_XERICS, null,
+	MXERIC_GLADE("mxeric:glade", "Xeric's Glade", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
-	MXERIC_INFERNO("mxeric:inferno", "Inferno", MOUNTED_XERICS, null,
+	MXERIC_INFERNO("mxeric:inferno", "Xeric's Inferno", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
-	MXERIC_HEART("mxeric:heart", "Heart", MOUNTED_XERICS, null,
+	MXERIC_HEART("mxeric:heart", "Xeric's Heart", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
-	MXERIC_HONOUR("mxeric:honour", "Honour", MOUNTED_XERICS, null,
+	MXERIC_HONOUR("mxeric:honour", "Xeric's Honour", MOUNTED_XERICS, null,
 		CostBasis.consumable(ItemID.LIZARDMAN_FANG, 1)),
 
 	// ============ MOUNTED DIGSITE PENDANT: craftedFraction = (ruby necklace + enchant runes) / 5 ============

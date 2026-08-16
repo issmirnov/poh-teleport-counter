@@ -41,6 +41,26 @@ public class MountedAmuletRecognizerTest
 	}
 
 	@Test
+	public void xericsMenuLabelsResolveViaRealNames()
+	{
+		// The Xeric's "Teleport menu" (MENU_NEW) labels are "Xeric's Lookout/Glade/Inferno/
+		// Heart/Honour" (live capture) — the real Destination names must match them.
+		Map<String, Destination> names = new java.util.HashMap<>();
+		for (Destination d : Destination.values())
+		{
+			if (d.getTransport() == Transport.MOUNTED_XERICS && !d.getId().endsWith(":unknown"))
+			{
+				names.put(d.getDisplayName().toLowerCase(java.util.Locale.ROOT), d);
+			}
+		}
+		MountedAmuletRecognizer r = new MountedAmuletRecognizer(33412, -1, Transport.MOUNTED_XERICS, names, Map.of());
+		assertEquals(Optional.of(Destination.MXERIC_INFERNO),
+			r.onMenuInteraction(new MenuInteraction("3: Xeric's Inferno", "", 33412), new St()));
+		assertEquals(Optional.of(Destination.MXERIC_HEART),
+			r.onMenuInteraction(new MenuInteraction("4: Xeric's Heart", "", 33412), new St()));
+	}
+
+	@Test
 	public void genericDefaultUsesVarbit()
 	{
 		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE,
