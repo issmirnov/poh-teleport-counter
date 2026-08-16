@@ -28,6 +28,19 @@ public class MountedAmuletRecognizerTest
 	}
 
 	@Test
+	public void menuNewNumberedPickResolves()
+	{
+		// The mounted "Teleport menu" pick is synthesized from MENU_NEW widget text like
+		// "1: Digsite" (numbered option); stripKey must drop the "1: " so it matches by name.
+		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE,
+			Map.of("digsite", Destination.MDIG_DIGSITE, "fossil island", Destination.MDIG_FOSSIL), Map.of());
+		assertEquals(Optional.of(Destination.MDIG_DIGSITE),
+			r.onMenuInteraction(new MenuInteraction("1: Digsite", "Digsite Pendant", 500), new St()));
+		assertEquals(Optional.of(Destination.MDIG_FOSSIL),
+			r.onMenuInteraction(new MenuInteraction("2: Fossil Island", "Digsite Pendant", 500), new St()));
+	}
+
+	@Test
 	public void genericDefaultUsesVarbit()
 	{
 		MountedAmuletRecognizer r = new MountedAmuletRecognizer(500, 700, Transport.MOUNTED_DIGSITE,

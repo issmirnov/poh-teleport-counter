@@ -27,11 +27,14 @@ import java.util.Map;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
 import net.runelite.api.Player;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.gameval.InterfaceID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -72,6 +75,13 @@ public class PohTeleportCounterPlugin extends Plugin
 	private PohTeleportPanel panel;
 	private NavigationButton navButton;
 	private boolean catalogWarned;
+
+	// Mounted-amulet "Teleport menu": the destination is picked in the generic MENU_NEW (947)
+	// option interface, which fires a WIDGET_CONTINUE carrying the destination as widget text
+	// (no named MenuOptionClicked). When such a menu is opened we remember the amulet object so
+	// the following pick can be attributed to it.
+	private int mountedMenuObjectId = -1;
+	private int mountedMenuUntilTick = Integer.MIN_VALUE;
 
 	@Provides
 	PohTeleportConfig provideConfig(ConfigManager cm)
@@ -196,10 +206,41 @@ public class PohTeleportCounterPlugin extends Plugin
 		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
 		if (config.debugLogMenus() && !mi.optionLower().equals("walk here"))
 		{
-			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
-				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
+			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} regions={}",
+				mi.getOption(), mi.getTarget(), mi.getId(), e.getParam0(), e.getParam1(), e.getMenuAction(),
+				Arrays.toString(client.getMapRegions()));
 		}
-		router.onMenuInteraction(mi); // arm/route FIRST — detection is never gated on the catalog
+		// A mounted amulet's "Teleport menu" opens the generic MENU_NEW option interface;
+		// remember the amulet so the subsequent pick can be attributed to it.
+		if ((e.getId() == PohGameIds.MOUNTED_XERICS_OBJECT || e.getId() == PohGameIds.MOUNTED_DIGSITE_OBJECT)
+			&& mi.optionLower().contains("teleport") && mi.optionLower().contains("menu"))
+		{
+			mountedMenuObjectId = e.getId();
+			mountedMenuUntilTick = client.getTickCount() + 30; // generous: reading the menu takes a few seconds
+		}
+
+		// The pick in that menu is a WIDGET_CONTINUE on MENU_NEW (947) carrying the destination
+		// as the widget's text. Synthesize the equivalent direct object-click so the normal
+		// mounted recognizer resolves it by name; the coord-jump then confirms the count.
+		MenuInteraction toRoute = mi;
+		if (e.getMenuAction() == MenuAction.WIDGET_CONTINUE
+			&& client.getTickCount() <= mountedMenuUntilTick
+			&& (e.getParam1() >>> 16) == InterfaceID.MENU_NEW)
+		{
+			Widget w = e.getWidget();
+			String picked = w == null ? "" : strip(w.getText());
+			mountedMenuUntilTick = Integer.MIN_VALUE; // consume the menu, matched or not
+			if (!picked.isEmpty())
+			{
+				toRoute = new MenuInteraction(picked, mi.getTarget(), mountedMenuObjectId);
+			}
+			if (config.debugLogMenus())
+			{
+				log.info("[POH-CC] mounted-menu pick: text='{}' -> click id={} child={}",
+					picked, mountedMenuObjectId, e.getParam1() & 0xFFFF);
+			}
+		}
+		router.onMenuInteraction(toRoute); // arm/route — detection is never gated on the catalog
 
 		// Catalog is best-effort: load it AFTER routing, and never let it disturb counting.
 		try

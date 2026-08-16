@@ -76,7 +76,8 @@ public interface TeleportRecognizer
 	static String stripKey(String s)
 	{
 		return s.replaceAll("[\\s\\xA0]+", " ")      // fold whitespace incl. non-breaking space
-			.replaceFirst("^\\[[^\\]]*\\] ?", "")    // drop a leading "[4] "/"[K] " shortcut
+			.replaceFirst("^\\[[^\\]]*\\] ?", "")    // drop a leading "[4] "/"[K] " nexus shortcut
+			.replaceFirst("^\\d+:\\s*", "")          // drop a leading "1: " MENU_NEW option number
 			.trim();
 	}
 }
