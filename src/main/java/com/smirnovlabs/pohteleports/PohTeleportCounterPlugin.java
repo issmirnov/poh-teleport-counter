@@ -178,7 +178,15 @@ public class PohTeleportCounterPlugin extends Plugin
 			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
 		}
+		boolean wasLoaded = nexusCatalog.isLoaded();
 		nexusCatalog.ensureLoaded(cacheView); // lazy: builds once the cache is up, then a cheap boolean
+		if (!wasLoaded && nexusCatalog.isLoaded() && config.debugLogVarbits())
+		{
+			// One-shot verification that the researched cache ids resolve. If this logs
+			// e.g. "45 names (461=Kharyrll, 855=Civitas illa Fortis)" the ids are correct.
+			log.info("[POH-CC] nexus catalog loaded: {} names (461={}, 855={})",
+				nexusCatalog.size(), nexusCatalog.name(461), nexusCatalog.name(855));
+		}
 		router.onMenuInteraction(mi);
 	}
 

@@ -174,3 +174,32 @@ Modeled on the Loot Tracker panel:
 - `runelite/example-plugin` (template), `runelite/plugin-hub` (submission rules), `static.runelite.net` (API javadoc).
 - `abextm/better-teleport-menu`, `nexus-map` — interface/varbit reading references.
 - RuneLite dev env on hexane: Bolt launcher, RuneLite home `~/.local/share/bolt-launcher/.runelite/` (see project `handoff.md`).
+
+---
+
+## Addendum — Nexus cache catalog (wired 2026-08-15, commits `5699617` + `2946c95`)
+
+Nexus destinations are now resolved from the **game cache** at runtime instead of relying only on hardcoded/guessed names — the user's "stop guessing names, do a set match not an if/contains chain" ask.
+
+**Design — additive & fail-safe.** `NexusRecognizer` resolves in three layers:
+1. **Name map** (today's behaviour, authoritative for recognized labels — never regressed).
+2. **Cache catalog** (`NexusCatalog`, only when `isLoaded()`): matches the click against the game's own cache names (rename-proof; fixes any guessed label) and resolves the generic left-click "Teleport" default from varbit `6653`. Struct ids bridge back to the `Destination` enum via `NexusStructIndex`.
+3. **Legacy varbit → Unknown** bucket.
+
+Because the catalog only loads if the researched cache ids are correct, a wrong id means it silently stays unloaded and the plugin behaves exactly as the name-map-only version. **Zero regression risk.** It also fixes a genuinely-broken path: the generic left-click default previously always logged as `Unknown` (empty varbit map).
+
+**Structure.** `CacheView` (narrow cache window, mirrors `GameStateView`) → `ClientCacheView` (prod adapter) / map-backed fakes (tests). `NexusCatalog` folds alt→primary (param `680`) and scry (`+150`) at load and exposes `structForName / structForDestValue / structForObject / name`. `NexusStructIndex` is the single struct-id→`Destination` bridge; the old `NexusCost` (a duplicate struct→cost table) was **removed** — cost comes from the resolved `Destination`'s own `CostBasis`, so nothing can drift.
+
+**Live-verification checklist** (the one open question — the cache ids `1377 / 660–663 / 680 / 6653` were researched, not confirmed in-game):
+1. In the plugin config, enable **Debug: log varbits**.
+2. Log in, click any object once, and watch the client log for `[POH-CC] nexus catalog loaded: N names (461=…, 855=…)`.
+   - Expect `N` ≈ 45, `461=Kharyrll`, `855=Civitas illa Fortis`. If so, the enum/struct/name ids are correct.
+   - If it never logs, or `N=0`/names blank → `NEXUS_DEST_ENUM (1377)` or `STRUCT_PARAM_NAME (660)` is wrong; the plugin still works via the name map, and we adjust `PohGameIds` from the captured values.
+3. Set the nexus left-click default to a destination, then left-click the portal (menu-entry-swapper style). It should count that destination (not `Default / Unknown`) → confirms varbit `6653`.
+4. Teleport to a Wilderness destination (Dareeyak/Carrallanger/Annakarl/Ghorrock) via the list. Correct bucketing there confirms the cache-name rescue (these were the riskiest guesses).
+
+**Stage B (after the ids are confirmed live):**
+- Flip **display names** to cache strings (thread `NexusCatalog.name(structId)` into `PanelModel` rows) so the panel shows Jagex's exact labels, not our best-guess enum text. Resolution is already cache-driven; only the shown string is still the enum's.
+- Add a **scry-mode gate** (varbit `6671 == 1` → don't count) — deliberately omitted for now because gating on an unconfirmed varbit could suppress real teleports; safe to add once `6671` is verified.
+
+**Roadmap (unchanged, per user):** skill-cape teleports = v1.1; spirit trees + fairy rings = v2; break-even / net-savings layer deferred (store already holds the counts).

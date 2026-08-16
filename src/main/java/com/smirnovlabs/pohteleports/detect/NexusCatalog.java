@@ -86,6 +86,12 @@ public final class NexusCatalog
 		return loaded;
 	}
 
+	/** Number of distinct destination names read from the cache (0 until loaded). */
+	public int size()
+	{
+		return structToName.size();
+	}
+
 	/** Primary struct id for a raw slot / left-click varbit value, or null. O(1), no cache call. */
 	public Integer structForDestValue(int destValue)
 	{

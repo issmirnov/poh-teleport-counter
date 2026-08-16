@@ -98,6 +98,13 @@ public class NexusCatalogTest
 	}
 
 	@Test
+	public void sizeCountsDistinctNames()
+	{
+		// 450 (Varrock) + 461 (Kharyrll); 451 is an alt of 450 with no own name.
+		assertEquals(2, loaded().size());
+	}
+
+	@Test
 	public void altDestFoldsToPrimaryStruct()
 	{
 		assertEquals(Integer.valueOf(450), loaded().structForDestValue(10));
