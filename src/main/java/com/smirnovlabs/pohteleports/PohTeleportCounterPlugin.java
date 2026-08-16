@@ -2,11 +2,14 @@ package com.smirnovlabs.pohteleports;
 
 import com.google.inject.Provides;
 import com.smirnovlabs.pohteleports.cost.SavingsValuator;
+import com.smirnovlabs.pohteleports.detect.CacheView;
+import com.smirnovlabs.pohteleports.detect.ClientCacheView;
 import com.smirnovlabs.pohteleports.detect.DetectionRouter;
 import com.smirnovlabs.pohteleports.detect.GameStateView;
 import com.smirnovlabs.pohteleports.detect.JewelleryBoxRecognizer;
 import com.smirnovlabs.pohteleports.detect.MenuInteraction;
 import com.smirnovlabs.pohteleports.detect.MountedAmuletRecognizer;
+import com.smirnovlabs.pohteleports.detect.NexusCatalog;
 import com.smirnovlabs.pohteleports.detect.NexusRecognizer;
 import com.smirnovlabs.pohteleports.detect.PohGameIds;
 import com.smirnovlabs.pohteleports.detect.TeleportRecognizer;
@@ -60,7 +63,9 @@ public class PohTeleportCounterPlugin extends Plugin
 	private PohTeleportConfig config;
 
 	private final TeleportSavingsStore store = new TeleportSavingsStore();
+	private final NexusCatalog nexusCatalog = new NexusCatalog();
 	private SavingsValuator valuator;
+	private CacheView cacheView;
 	private DetectionRouter router;
 	private PohTeleportPanel panel;
 	private NavigationButton navButton;
@@ -76,6 +81,7 @@ public class PohTeleportCounterPlugin extends Plugin
 	{
 		store.load(configManager);
 		valuator = new SavingsValuator(itemManager::getItemPrice);
+		cacheView = new ClientCacheView(client);
 
 		GameStateView state = new GameStateView()
 		{
@@ -128,7 +134,7 @@ public class PohTeleportCounterPlugin extends Plugin
 				Transport.MOUNTED_DIGSITE, byName(Transport.MOUNTED_DIGSITE), varbitDefault(Transport.MOUNTED_DIGSITE)),
 			new MountedAmuletRecognizer(PohGameIds.MOUNTED_GLORY_OBJECT, -1, Transport.MOUNTED_GLORY,
 				byName(Transport.MOUNTED_GLORY), varbitDefault(Transport.MOUNTED_GLORY)),
-			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, varbitDefault(Transport.NEXUS), byName(Transport.NEXUS)),
+			new NexusRecognizer(PohGameIds.NEXUS_OBJECT, varbitDefault(Transport.NEXUS), byName(Transport.NEXUS), nexusCatalog),
 			new JewelleryBoxRecognizer(byName(Transport.JEWELLERY_BOX)));
 
 		router = new DetectionRouter(recognizers, state, ev ->
@@ -172,6 +178,7 @@ public class PohTeleportCounterPlugin extends Plugin
 			log.info("[POH-CC] option='{}' target='{}' id={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), Arrays.toString(client.getMapRegions()));
 		}
+		nexusCatalog.ensureLoaded(cacheView); // lazy: builds once the cache is up, then a cheap boolean
 		router.onMenuInteraction(mi);
 	}
 
