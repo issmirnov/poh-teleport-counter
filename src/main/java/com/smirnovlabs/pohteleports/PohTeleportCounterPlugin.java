@@ -107,9 +107,11 @@ public class PohTeleportCounterPlugin extends Plugin
 			@Override
 			public boolean isInPoh()
 			{
-				// Until POH regions are captured (live QA), leave the gate open so
-				// object-scoped transports can be verified; once populated it tightens.
-				if (PohGameIds.POH_REGIONS.length == 0)
+				// A POH — your own OR a guest's — is an instanced region, so this is the
+				// reliable signal. Guest houses use different map regions than your own
+				// (e.g. [8302,8303] vs [8046,8047]), which a fixed region allowlist misses.
+				// The region list stays as a belt-and-braces fallback.
+				if (client.isInInstancedRegion())
 				{
 					return true;
 				}
@@ -206,9 +208,9 @@ public class PohTeleportCounterPlugin extends Plugin
 		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
 		if (config.debugLogMenus() && !mi.optionLower().equals("walk here"))
 		{
-			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} regions={}",
+			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} inst={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), e.getParam0(), e.getParam1(), e.getMenuAction(),
-				Arrays.toString(client.getMapRegions()));
+				client.isInInstancedRegion(), Arrays.toString(client.getMapRegions()));
 		}
 		// A mounted amulet's "Teleport menu" opens the generic MENU_NEW option interface;
 		// remember the amulet so the subsequent pick can be attributed to it.
