@@ -35,15 +35,6 @@ public class NexusStructIndexTest
 	}
 
 	@Test
-	public void structForResolvesDestinationBackToAStruct()
-	{
-		// Used by Stage-B to fetch the cache name for a destination's label.
-		assertEquals(Integer.valueOf(450), NexusStructIndex.structFor(Destination.NEXUS_VARROCK));
-		assertEquals(Integer.valueOf(461), NexusStructIndex.structFor(Destination.NEXUS_KHARYRLL));
-		assertNull(NexusStructIndex.structFor(Destination.NEXUS_UNKNOWN)); // never bridged
-	}
-
-	@Test
 	public void everyNexusDestinationIsBridged()
 	{
 		for (Destination d : Destination.values())

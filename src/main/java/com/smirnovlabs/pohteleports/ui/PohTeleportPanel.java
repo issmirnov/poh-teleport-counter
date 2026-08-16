@@ -79,7 +79,7 @@ public class PohTeleportPanel extends PluginPanel
 					}
 					for (PanelModel.Row r : g.getRows())
 					{
-						body.add(twoCol(r.getDisplayName() + "  " + r.getCount(),
+						body.add(twoCol(r.getDestination().getDisplayName() + "  " + r.getCount(),
 							QuantityFormatter.quantityToStackSize(r.getGp()), Color.LIGHT_GRAY, GREEN, rowIndent));
 					}
 				}

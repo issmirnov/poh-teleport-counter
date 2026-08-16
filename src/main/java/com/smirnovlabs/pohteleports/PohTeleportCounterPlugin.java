@@ -11,7 +11,6 @@ import com.smirnovlabs.pohteleports.detect.MenuInteraction;
 import com.smirnovlabs.pohteleports.detect.MountedAmuletRecognizer;
 import com.smirnovlabs.pohteleports.detect.NexusCatalog;
 import com.smirnovlabs.pohteleports.detect.NexusRecognizer;
-import com.smirnovlabs.pohteleports.detect.NexusStructIndex;
 import com.smirnovlabs.pohteleports.detect.PohGameIds;
 import com.smirnovlabs.pohteleports.detect.TeleportRecognizer;
 import com.smirnovlabs.pohteleports.model.Destination;
@@ -293,28 +292,7 @@ public class PohTeleportCounterPlugin extends Plugin
 		// ItemManager (via the valuator) must be read on the client thread; the panel
 		// then marshals its own Swing update onto the EDT.
 		clientThread.invokeLater(() ->
-			panel.rebuild(PanelModel.build(store.snapshot(), valuator, config.sortMode(), this::displayName)));
-	}
-
-	/**
-	 * Cache-authoritative label for a destination: the game's own nexus name (e.g.
-	 * "Canifis (Kharyrll)") when the catalog is loaded and knows it, else the enum name.
-	 */
-	private String displayName(Destination d)
-	{
-		if (d.getTransport() == Transport.NEXUS && nexusCatalog.isLoaded())
-		{
-			Integer struct = NexusStructIndex.structFor(d);
-			if (struct != null)
-			{
-				String cacheName = nexusCatalog.name(struct);
-				if (cacheName != null && !cacheName.isEmpty())
-				{
-					return cacheName;
-				}
-			}
-		}
-		return d.getDisplayName();
+			panel.rebuild(PanelModel.build(store.snapshot(), valuator, config.sortMode())));
 	}
 
 	/** Lowercased display-name -&gt; Destination for one transport (excludes the unknown bucket). */

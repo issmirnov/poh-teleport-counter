@@ -43,28 +43,6 @@ public class PanelModelTest
 	}
 
 	@Test
-	public void rowUsesTheDisplayNameResolver()
-	{
-		// Stage B: the plugin passes cache-authoritative nexus names; identity is unchanged.
-		Map<Destination, Integer> snap = new EnumMap<>(Destination.class);
-		snap.put(Destination.NEXUS_KHARYRLL, 1);
-		PanelModel m = PanelModel.build(snap, valuator(), SortMode.MOST_USED,
-			d -> d == Destination.NEXUS_KHARYRLL ? "Canifis (Kharyrll)" : d.getDisplayName());
-		PanelModel.Row row = m.getSections().get(0).getSubGroups().get(0).getRows().get(0);
-		assertEquals("Canifis (Kharyrll)", row.getDisplayName());
-		assertEquals(Destination.NEXUS_KHARYRLL, row.getDestination());
-	}
-
-	@Test
-	public void defaultBuildUsesEnumDisplayName()
-	{
-		Map<Destination, Integer> snap = new EnumMap<>(Destination.class);
-		snap.put(Destination.NEXUS_VARROCK, 1);
-		PanelModel m = PanelModel.build(snap, valuator(), SortMode.MOST_USED); // 3-arg overload
-		assertEquals("Varrock", m.getSections().get(0).getSubGroups().get(0).getRows().get(0).getDisplayName());
-	}
-
-	@Test
 	public void flatTransportsHaveSingleAnonymousSubGroup()
 	{
 		Map<Destination, Integer> snap = new EnumMap<>(Destination.class);

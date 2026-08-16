@@ -28,7 +28,6 @@ public final class NexusStructIndex
 
 	private static final Map<Integer, Destination> BY_STRUCT = build();
 	private static final Set<Destination> MAPPED = Collections.unmodifiableSet(new HashSet<>(BY_STRUCT.values()));
-	private static final Map<Destination, Integer> STRUCT_FOR_DEST = reverse();
 
 	/** The {@link Destination} for a nexus struct id, or null if we have no binding for it. */
 	public static Destination forStruct(int structId)
@@ -42,26 +41,10 @@ public final class NexusStructIndex
 		return MAPPED;
 	}
 
-	/** A struct id that maps to this destination (any one, for fetching its cache name), or null. */
-	public static Integer structFor(Destination d)
-	{
-		return STRUCT_FOR_DEST.get(d);
-	}
-
 	/** Number of struct bindings (a couple of destinations own two structs). */
 	public static int size()
 	{
 		return BY_STRUCT.size();
-	}
-
-	private static Map<Destination, Integer> reverse()
-	{
-		Map<Destination, Integer> m = new HashMap<>();
-		for (Map.Entry<Integer, Destination> e : BY_STRUCT.entrySet())
-		{
-			m.putIfAbsent(e.getValue(), e.getKey()); // first struct wins; alts share the same name
-		}
-		return m;
 	}
 
 	private static Map<Integer, Destination> build()

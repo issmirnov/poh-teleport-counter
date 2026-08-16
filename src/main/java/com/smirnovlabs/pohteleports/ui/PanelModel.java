@@ -9,7 +9,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Pure view-model for the panel: turns the store snapshot into a sorted,
@@ -21,14 +20,12 @@ public final class PanelModel
 	public static final class Row
 	{
 		private final Destination destination;
-		private final String displayName;
 		private final int count;
 		private final long gp;
 
-		Row(Destination destination, String displayName, int count, long gp)
+		Row(Destination destination, int count, long gp)
 		{
 			this.destination = destination;
-			this.displayName = displayName;
 			this.count = count;
 			this.gp = gp;
 		}
@@ -36,12 +33,6 @@ public final class PanelModel
 		public Destination getDestination()
 		{
 			return destination;
-		}
-
-		/** Label to show — cache-authoritative for nexus, the enum name otherwise. */
-		public String getDisplayName()
-		{
-			return displayName;
 		}
 
 		public int getCount()
@@ -155,16 +146,6 @@ public final class PanelModel
 
 	public static PanelModel build(Map<Destination, Integer> snapshot, SavingsValuator valuator, SortMode sort)
 	{
-		return build(snapshot, valuator, sort, Destination::getDisplayName);
-	}
-
-	/**
-	 * @param displayNameFn resolves each destination's shown label — the plugin passes the
-	 *                      cache-authoritative nexus name (falling back to the enum name).
-	 */
-	public static PanelModel build(Map<Destination, Integer> snapshot, SavingsValuator valuator, SortMode sort,
-		Function<Destination, String> displayNameFn)
-	{
 		// Compare on [count, gp], descending, keyed by the chosen sort mode.
 		Comparator<long[]> byMode = (a, b) -> sort == SortMode.MOST_SAVED
 			? Long.compare(b[1], a[1])
@@ -189,7 +170,7 @@ public final class PanelModel
 				}
 				long gp = valuator.gpTotal(d, c);
 				String sub = d.getSubGroup() == null ? "" : d.getSubGroup();
-				bySub.computeIfAbsent(sub, k -> new ArrayList<>()).add(new Row(d, displayNameFn.apply(d), c, gp));
+				bySub.computeIfAbsent(sub, k -> new ArrayList<>()).add(new Row(d, c, gp));
 				secCount += c;
 				secGp += gp;
 			}
