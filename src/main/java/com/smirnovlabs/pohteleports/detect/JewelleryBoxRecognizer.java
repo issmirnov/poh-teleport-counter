@@ -21,8 +21,7 @@ public class JewelleryBoxRecognizer implements TeleportRecognizer
 	@Override
 	public Optional<Destination> onMenuInteraction(MenuInteraction e, GameStateView state)
 	{
-		String option = e.optionLower();
-		if (option.contains("menu") || option.contains("configure"))
+		if (TeleportRecognizer.isIgnoredOption(e.optionLower()))
 		{
 			return Optional.empty();
 		}

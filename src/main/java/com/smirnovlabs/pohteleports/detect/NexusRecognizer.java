@@ -29,8 +29,7 @@ public class NexusRecognizer implements TeleportRecognizer
 	public Optional<Destination> onMenuInteraction(MenuInteraction e, GameStateView state)
 	{
 		String option = e.optionLower();
-		if (option.contains("menu") || option.contains("configure") || option.contains("build")
-			|| option.contains("set ") || option.contains("add ") || option.contains("select"))
+		if (TeleportRecognizer.isIgnoredOption(option))
 		{
 			return Optional.empty(); // opening the list / config / build — never a teleport
 		}

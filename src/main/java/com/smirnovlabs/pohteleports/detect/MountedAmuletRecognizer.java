@@ -45,7 +45,7 @@ public class MountedAmuletRecognizer implements TeleportRecognizer
 		// Generic left-click "Teleport" default -> configured-default varbit. Everything
 		// else ("Teleport menu", Examine, Rub, Configure, ...) is not a direct teleport.
 		String option = e.optionLower();
-		if (option.contains("teleport") && !option.contains("menu"))
+		if (!TeleportRecognizer.isIgnoredOption(option) && option.contains("teleport"))
 		{
 			Destination byVarbit = varbitDefaultMap.get(state.getVarbit(defaultVarbit));
 			return Optional.of(byVarbit != null ? byVarbit : Destination.unknownFor(transport));
