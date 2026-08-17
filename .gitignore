@@ -14,3 +14,9 @@ out/
 
 # OS
 .DS_Store
+
+# Local machine-specific Gradle config (org.gradle.java.home etc.)
+gradle.properties
+
+# Local dev launcher (borrows the Jagex session from Bolt; machine-specific)
+run-dev.sh
