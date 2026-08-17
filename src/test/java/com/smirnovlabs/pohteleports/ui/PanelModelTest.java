@@ -29,6 +29,15 @@ public class PanelModelTest
 	}
 
 	@Test
+	public void modelRemembersTheSortItWasBuiltWith()
+	{
+		Map<Destination, Integer> snap = new EnumMap<>(Destination.class);
+		snap.put(Destination.MGLORY_EDGEVILLE, 1);
+		assertEquals(SortMode.MOST_SAVED, PanelModel.build(snap, valuator(), SortMode.MOST_SAVED).getSortMode());
+		assertEquals(SortMode.MOST_USED, PanelModel.build(snap, valuator(), SortMode.MOST_USED).getSortMode());
+	}
+
+	@Test
 	public void jewelleryBoxNestsBySubGroup()
 	{
 		Map<Destination, Integer> snap = new EnumMap<>(Destination.class);

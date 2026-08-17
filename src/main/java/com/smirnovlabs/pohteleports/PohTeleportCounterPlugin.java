@@ -153,12 +153,6 @@ public class PohTeleportCounterPlugin extends Plugin
 			store.record(ev);
 			store.persist(configManager);
 			refresh();
-		}, msg ->
-		{
-			if (config.debugLogMenus())
-			{
-				log.info("[POH-CC] {}", msg);
-			}
 		});
 
 		panel = new PohTeleportPanel(mode ->
@@ -190,12 +184,6 @@ public class PohTeleportCounterPlugin extends Plugin
 	public void onMenuOptionClicked(MenuOptionClicked e)
 	{
 		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
-		if (config.debugLogMenus() && !mi.optionLower().equals("walk here"))
-		{
-			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} inst={} guest={} regions={}",
-				mi.getOption(), mi.getTarget(), mi.getId(), e.getParam0(), e.getParam1(), e.getMenuAction(),
-				client.isInInstancedRegion(), houseTracker.inGuestHouse(), Arrays.toString(client.getMapRegions()));
-		}
 		// Any interaction with a House Advertisement board ("View"/"Visit"/"Visit-Last") means
 		// the next house we enter is a guest's — you never touch this board for your own house.
 		// The tracker uses this to honour the "count guest POHs" toggle.
@@ -228,11 +216,6 @@ public class PohTeleportCounterPlugin extends Plugin
 			if (!picked.isEmpty())
 			{
 				toRoute = new MenuInteraction(picked, mi.getTarget(), mountedMenuObjectId);
-			}
-			if (config.debugLogMenus())
-			{
-				log.info("[POH-CC] mounted-menu pick: text='{}' -> click id={} child={}",
-					picked, mountedMenuObjectId, e.getParam1() & 0xFFFF);
 			}
 		}
 		router.onMenuInteraction(toRoute); // arm/route — detection is never gated on the catalog

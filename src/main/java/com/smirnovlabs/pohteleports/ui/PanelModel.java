@@ -120,18 +120,26 @@ public final class PanelModel
 
 	private final int totalCount;
 	private final long totalGp;
+	private final SortMode sortMode;
 	private final List<Section> sections;
 
-	private PanelModel(int totalCount, long totalGp, List<Section> sections)
+	private PanelModel(int totalCount, long totalGp, SortMode sortMode, List<Section> sections)
 	{
 		this.totalCount = totalCount;
 		this.totalGp = totalGp;
+		this.sortMode = sortMode;
 		this.sections = sections;
 	}
 
 	public int getTotalCount()
 	{
 		return totalCount;
+	}
+
+	/** The sort the model was built with — lets the panel light the active toggle. */
+	public SortMode getSortMode()
+	{
+		return sortMode;
 	}
 
 	public long getTotalGp()
@@ -198,6 +206,6 @@ public final class PanelModel
 			totalGp += secGp;
 		}
 		sections.sort((s1, s2) -> byMode.compare(new long[]{s1.count, s1.gp}, new long[]{s2.count, s2.gp}));
-		return new PanelModel(totalCount, totalGp, sections);
+		return new PanelModel(totalCount, totalGp, sort, sections);
 	}
 }

@@ -5,9 +5,11 @@ public enum Transport
 {
 	NEXUS("Teleport Nexus"),
 	JEWELLERY_BOX("Jewellery box"),
-	MOUNTED_GLORY("Mounted glory"),
-	MOUNTED_XERICS("Mounted Xeric's talisman"),
-	MOUNTED_DIGSITE("Mounted Digsite pendant");
+	// All three are the mounted (POH) variants — "Mounted" is dropped from the label since
+	// there is no other way to use them here, and the shorter names fit the panel width.
+	MOUNTED_GLORY("Amulet of glory"),
+	MOUNTED_XERICS("Xeric's talisman"),
+	MOUNTED_DIGSITE("Digsite pendant");
 
 	private final String displayName;
 

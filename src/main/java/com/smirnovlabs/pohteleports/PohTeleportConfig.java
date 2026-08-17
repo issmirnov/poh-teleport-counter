@@ -29,15 +29,4 @@ public interface PohTeleportConfig extends Config
 	{
 		return true;
 	}
-
-	@ConfigItem(
-		keyName = "debugLogMenus",
-		name = "Debug: log menu clicks",
-		position = 3,
-		description = "Log each menu click's option/target/id and map regions — used to capture PoH ids during setup"
-	)
-	default boolean debugLogMenus()
-	{
-		return false;
-	}
 }
