@@ -13,8 +13,8 @@ package com.smirnovlabs.pohteleports.detect;
  */
 public final class HouseOwnershipTracker
 {
-	/** Ticks a pending board-visit stays valid before we assume it was cancelled. */
-	private static final int PENDING_TTL = 10;
+	/** Ticks a pending board-visit stays valid (covers browsing the board) before we assume it was cancelled. */
+	private static final int PENDING_TTL = 100;
 
 	private boolean inGuestHouse;
 	private int pendingVisitTicks; // > 0 while a board-visit awaits the house entry

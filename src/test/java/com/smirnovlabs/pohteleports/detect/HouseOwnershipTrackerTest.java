@@ -51,9 +51,9 @@ public class HouseOwnershipTrackerTest
 	{
 		HouseOwnershipTracker t = new HouseOwnershipTracker();
 		t.onBoardVisit();
-		for (int i = 0; i < 11; i++)
+		for (int i = 0; i < 101; i++)
 		{
-			t.onTick(false); // clicked Visit but never entered (cancelled), stayed outside
+			t.onTick(false); // touched the board but never entered (cancelled), stayed outside past the TTL
 		}
 		t.onTick(true); // now enter your own house
 		assertFalse(t.inGuestHouse());

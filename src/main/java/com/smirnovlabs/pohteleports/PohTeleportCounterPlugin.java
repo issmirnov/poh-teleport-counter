@@ -192,13 +192,15 @@ public class PohTeleportCounterPlugin extends Plugin
 		MenuInteraction mi = new MenuInteraction(strip(e.getMenuOption()), strip(e.getMenuTarget()), e.getId());
 		if (config.debugLogMenus() && !mi.optionLower().equals("walk here"))
 		{
-			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} inst={} regions={}",
+			log.info("[POH-CC] option='{}' target='{}' id={} p0={} p1={} action={} inst={} guest={} regions={}",
 				mi.getOption(), mi.getTarget(), mi.getId(), e.getParam0(), e.getParam1(), e.getMenuAction(),
-				client.isInInstancedRegion(), Arrays.toString(client.getMapRegions()));
+				client.isInInstancedRegion(), houseTracker.inGuestHouse(), Arrays.toString(client.getMapRegions()));
 		}
-		// "Visit"/"Visit-Last" on a House Advertisement board means the next house we enter
-		// is a guest's — the tracker uses this to honour the "count guest POHs" toggle.
-		if (e.getId() == PohGameIds.HOUSE_ADVERTISEMENT_OBJECT && mi.optionLower().contains("visit"))
+		// Any interaction with a House Advertisement board ("View"/"Visit"/"Visit-Last") means
+		// the next house we enter is a guest's — you never touch this board for your own house.
+		// The tracker uses this to honour the "count guest POHs" toggle.
+		if (e.getId() == PohGameIds.HOUSE_ADVERTISEMENT_OBJECT
+			&& (mi.optionLower().contains("visit") || mi.optionLower().contains("view")))
 		{
 			houseTracker.onBoardVisit();
 		}
