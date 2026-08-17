@@ -20,10 +20,26 @@ public class NexusRecognizerTest
 	private static class St implements GameStateView
 	{
 		int v = 0;
-		public int getVarbit(int id) { return v; }
-		public boolean isInPoh() { return true; }
-		public int currentTick() { return 0; }
-		public int[] playerPos() { return null; }
+
+		public int getVarbit(int id)
+		{
+			return v;
+		}
+
+		public boolean isInPoh()
+		{
+			return true;
+		}
+
+		public int currentTick()
+		{
+			return 0;
+		}
+
+		public int[] playerPos()
+		{
+			return null;
+		}
 	}
 
 	private NexusRecognizer rec()

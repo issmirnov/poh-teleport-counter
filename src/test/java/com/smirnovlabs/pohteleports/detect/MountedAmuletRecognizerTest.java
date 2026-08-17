@@ -13,10 +13,25 @@ public class MountedAmuletRecognizerTest
 {
 	private static class St implements GameStateView
 	{
-		public int getVarbit(int id) { return 0; }
-		public boolean isInPoh() { return true; }
-		public int currentTick() { return 0; }
-		public int[] playerPos() { return null; }
+		public int getVarbit(int id)
+		{
+			return 0;
+		}
+
+		public boolean isInPoh()
+		{
+			return true;
+		}
+
+		public int currentTick()
+		{
+			return 0;
+		}
+
+		public int[] playerPos()
+		{
+			return null;
+		}
 	}
 
 	@Test
