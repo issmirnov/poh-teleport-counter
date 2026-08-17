@@ -25,12 +25,18 @@ public class TeleportSavingsStore
 	public static final String GROUP = "pohteleports";
 	public static final String KEY_COUNTS = "counts";
 
-	private static final Gson GSON = new Gson();
 	private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>()
 	{
 	}.getType();
 
+	// The Plugin Hub forbids constructing fresh Gson instances; this is the client's injected Gson.
+	private final Gson gson;
 	private final EnumMap<Destination, Integer> counts = new EnumMap<>(Destination.class);
+
+	public TeleportSavingsStore(Gson gson)
+	{
+		this.gson = gson;
+	}
 
 	public void record(TeleportEvent e)
 	{
@@ -66,7 +72,7 @@ public class TeleportSavingsStore
 		{
 			byId.put(e.getKey().getId(), e.getValue());
 		}
-		return GSON.toJson(byId, MAP_TYPE);
+		return gson.toJson(byId, MAP_TYPE);
 	}
 
 	void loadJson(String json)
@@ -76,7 +82,7 @@ public class TeleportSavingsStore
 		{
 			return;
 		}
-		Map<String, Integer> byId = GSON.fromJson(json, MAP_TYPE);
+		Map<String, Integer> byId = gson.fromJson(json, MAP_TYPE);
 		if (byId == null)
 		{
 			return;

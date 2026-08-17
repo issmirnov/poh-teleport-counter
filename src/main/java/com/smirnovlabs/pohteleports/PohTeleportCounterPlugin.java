@@ -1,5 +1,6 @@
 package com.smirnovlabs.pohteleports;
 
+import com.google.gson.Gson;
 import com.google.inject.Provides;
 import com.smirnovlabs.pohteleports.cost.SavingsValuator;
 import com.smirnovlabs.pohteleports.detect.CacheView;
@@ -65,8 +66,10 @@ public class PohTeleportCounterPlugin extends Plugin
 	private ItemManager itemManager;
 	@Inject
 	private PohTeleportConfig config;
+	@Inject
+	private Gson gson;
 
-	private final TeleportSavingsStore store = new TeleportSavingsStore();
+	private TeleportSavingsStore store;
 	private final NexusCatalog nexusCatalog = new NexusCatalog();
 	private final HouseOwnershipTracker houseTracker = new HouseOwnershipTracker();
 	private SavingsValuator valuator;
@@ -92,6 +95,7 @@ public class PohTeleportCounterPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		store = new TeleportSavingsStore(gson); // client's Gson, injected (Hub bans fresh Gson instances)
 		store.load(configManager);
 		valuator = new SavingsValuator(itemManager::getItemPrice);
 		cacheView = new ClientCacheView(client);
