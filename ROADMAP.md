@@ -40,5 +40,6 @@ Count the free teleports from skill / max / quest-cape sources.
 ## Distribution
 
 - [x] Feature-complete, unit-tested, self-reviewed
-- [ ] Private-repo review ← *we are here*
-- [ ] Plugin Hub submission (external manifest PR to `runelite/plugin-hub`; icon ready)
+- [x] CI — GitHub Actions runs build + tests + RuneLite Checkstyle on JDK 11
+- [x] Repository review — merged and made public
+- [ ] Plugin Hub submission — PR to `runelite/plugin-hub` ← *we are here*
