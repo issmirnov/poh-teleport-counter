@@ -1,5 +1,7 @@
 # PoH Teleport Counter
 
+[![CI](https://github.com/issmirnov/poh-teleport-counter/actions/workflows/ci.yml/badge.svg)](https://github.com/issmirnov/poh-teleport-counter/actions/workflows/ci.yml)
+
 Counts the free teleports you take from your **Player-Owned House** — the Teleport Nexus,
 jewellery box, and mounted amulets — and tallies the GP they save you, priced live from the
 Grand Exchange.

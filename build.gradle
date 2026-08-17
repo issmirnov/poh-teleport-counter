@@ -1,5 +1,6 @@
 plugins {
 	id 'java'
+	id 'checkstyle'
 }
 
 repositories {
@@ -28,6 +29,12 @@ dependencies {
 }
 
 group = 'com.smirnovlabs.pohteleports'
+
+// RuneLite's own checkstyle ruleset (config/checkstyle/checkstyle.xml) — the same style the
+// Plugin Hub enforces at submission, so a green `build` here means green checkstyle there.
+checkstyle {
+	toolVersion = '9.3'
+}
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
